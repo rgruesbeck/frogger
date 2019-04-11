@@ -1,27 +1,17 @@
 // Frogger
 import config from './config.json';
-import { requestAnimationFrame, cancelAnimationFrame } from './helpers/animationframe.js';
-import { loadList, loadImage, loadSound } from './helpers/loaders.js';
+import {
+    requestAnimationFrame,
+    cancelAnimationFrame
+} from './helpers/animationframe.js';
+import {
+    loadList,
+    loadImage,
+    loadSound
+} from './helpers/loaders.js';
 import Overlay from './helpers/overlay.js';
 import Player from './gamecharacters/player.js';
 import Enemy from './gamecharacters/enemy.js';
-
-// game settings
-let gameSize = 9;
-
-let playerWidth = 150;
-let playerHeight = 150;
-let playerSpeed = 15;
-
-let enemyWidth = 180;
-let enemyHeight = 180;
-let enemyMinSpeed = 5;
-let enemyMaxSpeed = 10;
-let enemySpawnRate = 30;
-
-let score = 0;
-let lives = 3;
-let goals = 3;
 
 class Game {
     constructor(canvas, overlay, koji) {
@@ -34,6 +24,31 @@ class Game {
 
         this.overlay = overlay;
 
+        // game settings
+        this.gameSize = 9;
+
+        this.playerWidth = this.canvas.height / this.gameSize;
+        this.playerHeight = this.canvas.height / this.gameSize;
+        this.playerSpeed = this.koji.general.playerSpeed;
+
+        this.enemyWidth = this.canvas.height / this.gameSize;
+        this.enemyHeight = this.canvas.height / this.gameSize;
+        this.enemyMinSpeed = parseInt(this.koji.general.enemyMinSpeed);
+        this.enemyMaxSpeed = parseInt(this.koji.general.enemyMaxSpeed);
+        this.enemySpawnRate = parseInt(this.koji.general.enemySpawnRate);
+
+        console.log(
+            this.enemyWidth,
+            this.enemyHeight,
+            this.enemyMinSpeed,
+            this.enemyMaxSpeed,
+            parseInt(this.enemySpawnRate)
+        );
+
+        this.score = 0;
+        this.lives = this.koji.general.lives;
+        this.wins = this.koji.general.wins;
+
         this.screen = {
             top: 0,
             bottom: this.canvas.height,
@@ -44,12 +59,17 @@ class Game {
         };
 
         this.gamePaused = false; // game paused or not (true, false)
-        this.gameState = 'ready'; // our game state (ready, play, win, over)
+        this.gameState = {
+            current: 'ready',
+            prev: ''
+        }; // our game state (ready, play, win, over)
         this.frame = 0; // our count of frames just like in a movie
 
         this.images = {}; // place to keep our images
         this.sounds = {}; // place to keep our sounds
-        this.fonts = { default: 'Courier New' }; // place to keep our fonts
+        this.fonts = {
+            default: 'Courier New'
+        }; // place to keep our fonts
 
         this.player = null;
         this.enemies = {};
@@ -63,13 +83,36 @@ class Game {
         };
 
         // listen for keyboard input
-        document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
-        document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
+        document.addEventListener('keydown', ({
+            code
+        }) => this.handleKeyboardInput('keydown', code), false);
+        document.addEventListener('keyup', ({
+            code
+        }) => this.handleKeyboardInput('keyup', code), false);
 
         // listen for button clicks
         this.overlay.root.addEventListener('click', () => {
-            this.overlay.hideButton();
-            this.gameState = 'play';
+            this.overlay.hideButton(); // hide button
+
+            // game state is ready
+            // set game state to play
+            if (this.gameState.current === 'ready') {
+                this.setGameState('play');
+            }
+
+            // game state is over:
+            // reset game and set to play
+            if (this.gameState.current === 'over') {
+                this.reset();
+            }
+
+            // game state is win:
+            // reset game and set to play
+            if (this.gameState.current === 'win') {
+                this.reset();
+            }
+
+
         }, false);
     }
 
@@ -92,14 +135,17 @@ class Game {
         ];
 
         loadList(gameAssets)
-        .then((assets) => {
+            .then((assets) => {
 
-            this.images = assets.image; // attach the loaded images
-            this.sounds = assets.sound; // attach the loaded sounds
-            this.fonts = { ...this.fonts, ...assets.fonts } // attach the loaded fonts
+                this.images = assets.image; // attach the loaded images
+                this.sounds = assets.sound; // attach the loaded sounds
+                this.fonts = {
+                    ...this.fonts,
+                    ...assets.fonts
+                } // attach the loaded fonts
 
-            this.create();
-        });
+                this.create();
+            });
     }
 
     create() {
@@ -107,26 +153,26 @@ class Game {
 
         this.topArea = {
             top: 0,
-            bottom: this.canvas.height / gameSize
+            bottom: this.canvas.height / this.gameSize
         }
 
         this.middleArea = {
-            top: this.canvas.height / gameSize,
-            bottom: this.canvas.height - (this.canvas.height / gameSize)
+            top: this.canvas.height / this.gameSize,
+            bottom: this.canvas.height - (this.canvas.height / this.gameSize)
         }
 
         this.bottomArea = {
-            top: this.canvas.height - (this.canvas.height / gameSize),
+            top: this.canvas.height - (this.canvas.height / this.gameSize),
             bottom: this.canvas.height
         }
 
         // todo extract all width and height
-        this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - playerWidth/2, this.screen.bottom - playerHeight, playerWidth, playerHeight);
+        this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - this.playerWidth / 2, this.screen.bottom - this.playerHeight, this.playerWidth, this.playerHeight);
 
         const enemyId = Math.random().toString(16).slice(2);
-        this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, enemyWidth, enemyHeight, enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
+        this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, this.enemyWidth, this.enemyHeight, this.enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
 
-        console.log(this.sounds);
+
         this.play();
     }
 
@@ -134,7 +180,7 @@ class Game {
         // each time play() is called, we will update the positions
         // of our game character and paint a picture and then call play() again
         // this way we will create an animation just like the pages of a flip book
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // clears the screen for the last picture
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // clears the screen of the last picture
 
         // draw top, middle, and bottom areas
         this.ctx.drawImage(this.images.topImage, 0, 0, this.canvas.width, this.topArea.bottom);
@@ -142,55 +188,63 @@ class Game {
         this.ctx.drawImage(this.images.bottomImage, 0, this.bottomArea.top, this.canvas.width, this.bottomArea.bottom - this.bottomArea.top);
 
         // draw current score and lives
-        this.overlay.setScore(score);
-        this.overlay.setLives(lives);
+        this.overlay.setScore(this.score);
+        this.overlay.setLives(this.lives);
 
-        // start playing background music
+        // play background music when its available
         this.sounds.backgroundMusic.loop = true;
         this.sounds.backgroundMusic.play();
 
+        // check for wins or game overs
+        if (this.wins < 1) {
+            this.setGameState('win');
+        }
+
+        if (this.lives < 1) {
+            this.setGameState('over');
+        }
+
+
 
         // ready to play
-        if (this.gameState === 'ready') {
+        if (this.gameState.current === 'ready') {
             // game is ready to play
             // show start button and wait for player
 
-            this.overlay.showButton('Start'); // todo: start text
+            this.overlay.showButton(this.koji.general.startText);
         }
 
         // player wins
-        if (this.gameState === 'win') {
+        if (this.gameState.current === 'win') {
             // player wins!
             // show celebration, wait for awhile then
             // got to 'ready' state
 
-            this.sounds.winSound.play();
-            this.overlay.showButton('You Win!'); // todo: start text
-            lives = 3;
-            score = 0;
-            goals = 3;
+            this.overlay.showButton(this.koji.general.winText);
+            if (this.gameState.prev === 'play') {
+                this.sounds.winSound.play();
+                this.setGameState('win');
+            }
         }
 
         // game over
-        if (this.gameState === 'over') {
+        if (this.gameState.current === 'over') {
             // player wins!
             // show game over, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.showButton('Game Over'); // todo: start text
+            this.overlay.showButton(this.koji.general.gameoverText);
+            this.sounds.backgroundMusic.muted = true;
 
-            lives = 3;
-            score = 0;
-            goals = 3;
+            if (this.gameState.prev === 'play') {
+                this.sounds.gameoverSound.play();
+                this.setGameState('over');
+            }
         }
 
         // game play
-        if (this.gameState === 'play') {
+        if (this.gameState.current === 'play') {
             // game in session
-
-            // check for wins or game overs
-            if (goals < 1) { this.gameState = 'win' }
-            if (lives < 1) { this.gameState = 'over' }
 
             // draw enemies
             for (let enemyId in this.enemies) {
@@ -202,36 +256,30 @@ class Game {
                 if (enemy.x > this.canvas.width) {
                     delete this.enemies[enemyId];
                 } else {
-                    enemy.move(enemyMinSpeed, 0);
+                    enemy.move(this.enemyMinSpeed, 0);
                     enemy.draw();
                 }
 
-                
+
                 // check for enemy collisions with the player
                 if (this.player.collidesWith(enemy)) {
 
                     // when player collides with enemy
                     // take away one life, play die sound,  and reset player back to safety
-                    lives -= 1; // take life
+                    this.lives -= 1; // take life
                     this.sounds.dieSound.play();
 
-                    this.player.x = this.screen.centerX - playerWidth; // reset position
-                    this.player.y = this.screen.bottom - playerHeight;
-
-                    // if no more lives
-                    if (lives < 1) {
-                        this.sounds.gameoverSound.play();
-                        this.gameState = 'over';
-                    }
+                    this.player.x = this.screen.centerX - this.playerWidth; // reset position
+                    this.player.y = this.screen.bottom - this.playerHeight;
                 }
             }
 
             // create new enemies
             // spawn a new enemy every n frames
-            if (this.frame % enemySpawnRate === 0) {
+            if (this.frame % this.enemySpawnRate === 0) {
 
                 const id = Math.random().toString(16).slice(2);
-                this.enemies[id] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, enemyWidth, enemyHeight, enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
+                this.enemies[id] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, this.enemyWidth, this.enemyHeight, this.enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
             }
 
 
@@ -239,18 +287,19 @@ class Game {
             // add to the score every 30 frames
             if (this.frame % 30 === 0) {
                 if (this.player.y > this.middleArea.top && this.player.y < this.middleArea.bottom) {
-                    score += 1;
+                    this.score += 1;
                 }
             }
 
-            // if player reaches goal
+            // if player reaches goal: win
             // celebrate and award 100 score
             // reset position back to start
-            if (this.player.y < this.middleArea.top) {
-                goals -= 1;
-                score += 100;
-                this.player.x = this.screen.centerX - playerWidth; // reset position
-                this.player.y = this.screen.bottom - playerHeight;
+            if (this.player.y + this.player.height - 20 <= this.middleArea.top) {
+
+                this.wins -= 1;
+                this.score += 100;
+                this.player.x = this.screen.centerX - this.playerWidth; // reset position
+                this.player.y = this.screen.bottom - this.playerHeight;
                 this.sounds.scoreSound.play();
             }
 
@@ -261,7 +310,7 @@ class Game {
                 y: (this.input.up ? -1 : 0) + (this.input.down ? 1 : 0)
             };
 
-            this.player.move(playerDirection.x * playerSpeed, playerDirection.y * playerSpeed);
+            this.player.move(playerDirection.x * this.playerSpeed, playerDirection.y * this.playerSpeed);
             this.player.draw();
 
             // draw gems and powerups
@@ -279,19 +328,37 @@ class Game {
     handleKeyboardInput(type, code) {
 
         if (type === 'keydown') {
-            if (code === 'ArrowUp') { this.input.up = true }
-            if (code === 'ArrowRight') { this.input.right = true }
-            if (code === 'ArrowDown') { this.input.down = true }
-            if (code === 'ArrowLeft') { this.input.left = true }
+            if (code === 'ArrowUp') {
+                this.input.up = true
+            }
+            if (code === 'ArrowRight') {
+                this.input.right = true
+            }
+            if (code === 'ArrowDown') {
+                this.input.down = true
+            }
+            if (code === 'ArrowLeft') {
+                this.input.left = true
+            }
         }
 
         if (type === 'keyup') {
-            if (code === 'ArrowUp') { this.input.up = false }
-            if (code === 'ArrowRight') { this.input.right = false }
-            if (code === 'ArrowDown') { this.input.down = false }
-            if (code === 'ArrowLeft') { this.input.left = false }
+            if (code === 'ArrowUp') {
+                this.input.up = false
+            }
+            if (code === 'ArrowRight') {
+                this.input.right = false
+            }
+            if (code === 'ArrowDown') {
+                this.input.down = false
+            }
+            if (code === 'ArrowLeft') {
+                this.input.left = false
+            }
 
-            if (code === 'Space') { this.pause(); } // spacebar: pause and play game
+            if (code === 'Space') {
+                this.pause();
+            } // spacebar: pause and play game
         }
     }
 
@@ -305,6 +372,20 @@ class Game {
             cancelAnimationFrame(this.frame);
             this.overlay.showButton('Paused');
         }
+    }
+
+    setGameState(state) {
+        this.gameState = {
+            ...this.gameState,
+            ...{
+                current: state,
+                prev: this.gameState.current
+            }
+        };
+    }
+
+    reset() {
+        document.location.reload();
     }
 }
 

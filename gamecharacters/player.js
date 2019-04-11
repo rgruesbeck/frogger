@@ -15,14 +15,30 @@ class Player {
         this.height = h;
 
         this.radius = (w + h) / 4;
+
+        this.bounds = {
+            top: 0,
+            right: this.ctx.canvas.width - this.width,
+            bottom: this.ctx.canvas.height - this.height,
+            left: 0
+        };
     }
 
     move(x, y) {
-        this.x += x;
-        this.y += y;
+        let dx = this.x + x;
+        let dy = this.y + y;
 
-        this.cx = this.x + (this.width/2);
-        this.cy = this.y + (this.height/2);
+        // update x and cx if within bounds
+        if (dx > this.bounds.left && dx < this.bounds.right) {
+            this.x = dx;
+            this.cx = this.x + (this.width/2);
+        }
+
+        // update y and cy if within bounds
+        if (dy > this.bounds.top && dy < this.bounds.bottom) {
+            this.y = dy;
+            this.cy = this.y + (this.height/2);
+        }
     }
 
     draw() {

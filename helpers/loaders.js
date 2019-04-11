@@ -34,8 +34,6 @@ const loadImage = (key, url) => {
 const loadSound = (key, url) => {
   return new Promise((resolve, reject) => {
     let sound = new Audio(url);
-    sound.preload = 'auto';
-    sound.autoplay = false;
     sound.oncanplaythrough = function() {
       resolve({
         type: 'sound',

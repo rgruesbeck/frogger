@@ -1,10 +1,15 @@
 {
   "general": {
-    "name": "Breakout",
-    "buttonText": "Start",
-    "ballSpeed": "3",
+    "name": "Tokyo Traffic",
+    "startText": "Starts",
+    "winText": "You Win!",
+    "gameoverText": "Game Over",
     "lives": "3",
-    "rows": "4"
+    "wins": "3",
+    "playerSpeed": "15",
+    "enemyMinSpeed": "5",
+    "enemyMaxSpeed": "10",
+    "enemySpawnRate": "30"
   },
   "@@editor": [
     {
@@ -18,20 +23,40 @@
           "name": "App name"
         },
         {
-          "key": "buttonText",
+          "key": "startText",
           "name": "Start Button Text"
         },
         {
-          "key": "ballSpeed",
-          "name": "Ball Speed"
+          "key": "winText",
+          "name": "Text to show when player wins"
+        },
+        {
+          "key": "gameoverText",
+          "name": "Text to show when game over"
         },
         {
           "key": "lives",
           "name": "Lives"
         },
         {
-          "key": "rows",
-          "name": "Rows of Sharks"
+          "key": "wins",
+          "name": "How many crossing it takes to win"
+        },
+        {
+          "key": "playerSpeed",
+          "name": "Speed the player can move"
+        },
+        {
+          "key": "enemyMinSpeed",
+          "name": "Minimum speed enemy can move"
+        },
+        {
+          "key": "enemyMaxSpeed",
+          "name": "Max speed enemy can move"
+        },
+        {
+          "key": "enemySpawnRate",
+          "name": "Number of frames before a new enemy spawns (lower is harder)"
         }
       ]
     }
