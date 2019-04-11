@@ -1,0 +1,39 @@
+{
+  "general": {
+    "name": "Breakout",
+    "buttonText": "Start",
+    "ballSpeed": "3",
+    "lives": "3",
+    "rows": "4"
+  },
+  "@@editor": [
+    {
+      "key": "general",
+      "name": "Game settings",
+      "icon": "🎮",
+      "source": "general.json",
+      "fields": [
+        {
+          "key": "name",
+          "name": "App name"
+        },
+        {
+          "key": "buttonText",
+          "name": "Start Button Text"
+        },
+        {
+          "key": "ballSpeed",
+          "name": "Ball Speed"
+        },
+        {
+          "key": "lives",
+          "name": "Lives"
+        },
+        {
+          "key": "rows",
+          "name": "Rows of Sharks"
+        }
+      ]
+    }
+  ]
+}
