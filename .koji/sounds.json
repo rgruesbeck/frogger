@@ -1,6 +1,6 @@
 {
   "sounds": {
-    "backgroundMusic": "https://objects.koji-cdn.com/d659a1cd-54ca-41c1-906f-3b7b5f6aeb7d/backgroundMusic2.mp3",
+    "backgroundMusic": "https://s3-us-west-2.amazonaws.com/koji-cdn/media/ron/game-music.mp3",
     "winSound": "https://objects.koji-cdn.com/d659a1cd-54ca-41c1-906f-3b7b5f6aeb7d/winSound.mp3",
     "gameoverSound": "https://objects.koji-cdn.com/d659a1cd-54ca-41c1-906f-3b7b5f6aeb7d/gameoverSound.mp3",
     "scoreSound": "https://objects.koji-cdn.com/d659a1cd-54ca-41c1-906f-3b7b5f6aeb7d/scoreSound.mp3",

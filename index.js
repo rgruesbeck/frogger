@@ -9,8 +9,8 @@ import Enemy from './gamecharacters/enemy.js';
 // game settings
 let gameSize = 9;
 
-let playerWidth = 90;
-let playerHeight = 90;
+let playerWidth = 150;
+let playerHeight = 150;
 let playerSpeed = 15;
 
 let enemyWidth = 180;
@@ -85,6 +85,10 @@ class Game {
             loadImage('characterImage', this.koji.images.characterImage),
             loadImage('enemyImage', this.koji.images.enemyImage),
             loadSound('backgroundMusic', this.koji.sounds.backgroundMusic),
+            loadSound('winSound', this.koji.sounds.winSound),
+            loadSound('gameoverSound', this.koji.sounds.gameoverSound),
+            loadSound('scoreSound', this.koji.sounds.scoreSound),
+            loadSound('dieSound', this.koji.sounds.dieSound),
         ];
 
         loadList(gameAssets)
@@ -122,6 +126,7 @@ class Game {
         const enemyId = Math.random().toString(16).slice(2);
         this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, enemyWidth, enemyHeight, enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
 
+        console.log(this.sounds);
         this.play();
     }
 
@@ -140,6 +145,10 @@ class Game {
         this.overlay.setScore(score);
         this.overlay.setLives(lives);
 
+        // start playing background music
+        this.sounds.backgroundMusic.loop = true;
+        this.sounds.backgroundMusic.play();
+
 
         // ready to play
         if (this.gameState === 'ready') {
@@ -155,6 +164,7 @@ class Game {
             // show celebration, wait for awhile then
             // got to 'ready' state
 
+            this.sounds.winSound.play();
             this.overlay.showButton('You Win!'); // todo: start text
             lives = 3;
             score = 0;
@@ -201,14 +211,16 @@ class Game {
                 if (this.player.collidesWith(enemy)) {
 
                     // when player collides with enemy
-                    // take away one life, and reset player back to safety
+                    // take away one life, play die sound,  and reset player back to safety
                     lives -= 1; // take life
+                    this.sounds.dieSound.play();
 
                     this.player.x = this.screen.centerX - playerWidth; // reset position
                     this.player.y = this.screen.bottom - playerHeight;
 
                     // if no more lives
                     if (lives < 1) {
+                        this.sounds.gameoverSound.play();
                         this.gameState = 'over';
                     }
                 }
@@ -239,6 +251,7 @@ class Game {
                 score += 100;
                 this.player.x = this.screen.centerX - playerWidth; // reset position
                 this.player.y = this.screen.bottom - playerHeight;
+                this.sounds.scoreSound.play();
             }
 
             // get input and update the player's direction
