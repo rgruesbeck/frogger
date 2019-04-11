@@ -2,22 +2,26 @@
 import config from './config.json';
 import { requestAnimationFrame, cancelAnimationFrame } from './helpers/animationframe.js';
 import { loadList, loadImage, loadSound } from './helpers/loaders.js';
+import Overlay from './helpers/overlay.js';
 import Player from './gamecharacters/player.js';
 import Enemy from './gamecharacters/enemy.js';
 
-// todo
-// extract all hard coded dimentions
-// wrap overlay
-// display score
-// display lives
-// display 
-
-
 // game settings
-let portions = 9;
+let gameSize = 9;
+
+let playerWidth = 90;
+let playerHeight = 90;
 let playerSpeed = 15;
-let enemyTopSpeed = 15; // todo
+
+let enemyWidth = 180;
+let enemyHeight = 180;
+let enemyMinSpeed = 5;
+let enemyMaxSpeed = 10;
+let enemySpawnRate = 30;
+
+let score = 0;
 let lives = 3;
+let goals = 3;
 
 class Game {
     constructor(canvas, overlay, koji) {
@@ -63,15 +67,13 @@ class Game {
         document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
 
         // listen for button clicks
-        this.overlay.addEventListener('click', () => {
-            this.overlay.setAttribute('style', 'display: none;'); // hide overlay
+        this.overlay.root.addEventListener('click', () => {
+            this.overlay.hideButton();
             this.gameState = 'play';
-            this.pause();
         }, false);
     }
 
     load() {
-        console.log('load');
         // here we will load all our assets
         // pictures, sounds, and fonts we need for our game
 
@@ -97,33 +99,28 @@ class Game {
     }
 
     create() {
-        console.log('create', this.images, this.sounds, this.fonts);
         // here we will create our game characters
 
         this.topArea = {
             top: 0,
-            bottom: this.canvas.height / portions
+            bottom: this.canvas.height / gameSize
         }
 
         this.middleArea = {
-            top: this.canvas.height / portions,
-            bottom: this.canvas.height - (this.canvas.height / portions)
+            top: this.canvas.height / gameSize,
+            bottom: this.canvas.height - (this.canvas.height / gameSize)
         }
 
         this.bottomArea = {
-            top: this.canvas.height - (this.canvas.height / portions),
+            top: this.canvas.height - (this.canvas.height / gameSize),
             bottom: this.canvas.height
         }
 
-
         // todo extract all width and height
-        let playerWidth = this.canvas.width / portions;
-        let playerHeight = this.canvas.height / portions;
-        console.log(playerWidth, playerHeight);
         this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - playerWidth/2, this.screen.bottom - playerHeight, playerWidth, playerHeight);
 
         const enemyId = Math.random().toString(16).slice(2);
-        this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, 210, 210, this.middleArea.top, this.middleArea.bottom);
+        this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, enemyWidth, enemyHeight, enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
 
         this.play();
     }
@@ -139,12 +136,17 @@ class Game {
         this.ctx.drawImage(this.images.middleImage, 0, this.middleArea.top, this.canvas.width, this.middleArea.bottom - this.middleArea.top);
         this.ctx.drawImage(this.images.bottomImage, 0, this.bottomArea.top, this.canvas.width, this.bottomArea.bottom - this.bottomArea.top);
 
+        // draw current score and lives
+        this.overlay.setScore(score);
+        this.overlay.setLives(lives);
+
+
         // ready to play
         if (this.gameState === 'ready') {
             // game is ready to play
             // show start button and wait for player
 
-            this.overlay.setAttribute('style', ''); // show overlay
+            this.overlay.showButton('Start'); // todo: start text
         }
 
         // player wins
@@ -153,8 +155,10 @@ class Game {
             // show celebration, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.setAttribute('style', ''); // show overlay
-            console.log('play-win', this.frame);
+            this.overlay.showButton('You Win!'); // todo: start text
+            lives = 3;
+            score = 0;
+            goals = 3;
         }
 
         // game over
@@ -163,15 +167,20 @@ class Game {
             // show game over, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.setAttribute('style', ''); // show overlay
+            this.overlay.showButton('Game Over'); // todo: start text
 
             lives = 3;
-            console.log('play-over', this.frame);
+            score = 0;
+            goals = 3;
         }
 
         // game play
         if (this.gameState === 'play') {
             // game in session
+
+            // check for wins or game overs
+            if (goals < 1) { this.gameState = 'win' }
+            if (lives < 1) { this.gameState = 'over' }
 
             // draw enemies
             for (let enemyId in this.enemies) {
@@ -183,19 +192,20 @@ class Game {
                 if (enemy.x > this.canvas.width) {
                     delete this.enemies[enemyId];
                 } else {
-                    enemy.move(5, 0);
+                    enemy.move(enemyMinSpeed, 0);
                     enemy.draw();
                 }
 
                 
+                // check for enemy collisions with the player
                 if (this.player.collidesWith(enemy)) {
 
                     // when player collides with enemy
                     // take away one life, and reset player back to safety
                     lives -= 1; // take life
 
-                    this.player.x = this.screen.centerX - 90; // reset position
-                    this.player.y = this.screen.bottom - 180;
+                    this.player.x = this.screen.centerX - playerWidth; // reset position
+                    this.player.y = this.screen.bottom - playerHeight;
 
                     // if no more lives
                     if (lives < 1) {
@@ -205,11 +215,30 @@ class Game {
             }
 
             // create new enemies
-            // spawn a new enemy every 60 frames
-            if (this.frame % 60 === 0) {
+            // spawn a new enemy every n frames
+            if (this.frame % enemySpawnRate === 0) {
 
                 const id = Math.random().toString(16).slice(2);
-                this.enemies[id] = Enemy.spawn(this.ctx, this.images.enemyImage, 210, 210, this.middleArea.top, this.middleArea.bottom);
+                this.enemies[id] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, enemyWidth, enemyHeight, enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
+            }
+
+
+            // if player is in the middle area
+            // add to the score every 30 frames
+            if (this.frame % 30 === 0) {
+                if (this.player.y > this.middleArea.top && this.player.y < this.middleArea.bottom) {
+                    score += 1;
+                }
+            }
+
+            // if player reaches goal
+            // celebrate and award 100 score
+            // reset position back to start
+            if (this.player.y < this.middleArea.top) {
+                goals -= 1;
+                score += 100;
+                this.player.x = this.screen.centerX - playerWidth; // reset position
+                this.player.y = this.screen.bottom - playerHeight;
             }
 
             // get input and update the player's direction
@@ -257,16 +286,16 @@ class Game {
         if (this.gamePaused) {
             this.gamePaused = false;
             requestAnimationFrame(() => this.play());
-            this.overlay.setAttribute('style', 'display: none;'); // hide overlay
+            this.overlay.hideButton();
         } else {
             this.gamePaused = true;
             cancelAnimationFrame(this.frame);
-            this.overlay.setAttribute('style', ''); // show overlay
+            this.overlay.showButton('Paused');
         }
     }
 }
 
 const screen = document.getElementById("game");
-const overlay = document.getElementById("overlay");
+const overlay = new Overlay(document.getElementById("overlay"));
 const frogger = new Game(screen, overlay, config); // here we create a fresh game
 frogger.load(); // and tell it to start

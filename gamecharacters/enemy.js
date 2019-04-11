@@ -31,15 +31,18 @@ class Enemy {
         this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     }
 
-    static spawn(ctx, image, w, h, topBound, bottomBound) {
+    static spawn(ctx, image, topBound, bottomBound, w, h, topSpeed) {
 
         let top = topBound;
         let bottom = bottomBound - 2 * h;
-        let randomY = Math.floor(Math.random() * bottom) + top;
 
-        let randomSpeed = Math.floor(Math.random() * 9);
+        let height = Math.floor((bottomBound - topBound) / h);
+        let randY = (Math.floor(Math.random() * height) * h ) + top;
 
-        return new Enemy(ctx, image, (-1 * w), randomY, w, h, randomSpeed);
+        // topBound
+        let randomSpeed = Math.floor(Math.random() * topSpeed);
+
+        return new Enemy(ctx, image, (-1 * w), randY, w, h, randomSpeed);
     }
 }
 

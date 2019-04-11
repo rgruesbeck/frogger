@@ -18,11 +18,13 @@ canvas {
 }
 
 .container {
+    position: relative;
     display: flex;
     flex-direction: row;
 }
 
 .container #button {
+    display: none;
     flex: auto;
     margin: 15vh auto;
     padding: 0.5em;
@@ -35,5 +37,27 @@ canvas {
     font-size: 2em;
     font-weight: bold;
     cursor: pointer;
+    color: white;
+}
+
+.container #score {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1em;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+}
+
+.container #lives {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1em;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2em;
+    font-weight: bold;
     color: white;
 }
