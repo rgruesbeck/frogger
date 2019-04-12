@@ -1,4 +1,4 @@
-// Frogger
+// Tokyo Traffic (frogger)
 import config from './config.json';
 import {
     requestAnimationFrame,
