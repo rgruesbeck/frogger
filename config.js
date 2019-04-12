@@ -1,4 +1,4 @@
-const fs = require('fs');
+var fs = require('fs');
 
 var kojiConfig = require('./.koji/resources/scripts/buildCofig.js');
 var koji = kojiConfig();
