@@ -3,9 +3,17 @@
 class Overlay {
     constructor(node) {
         this.root = node;
+
+        this.container = node.querySelector('.container');
         this.button = node.querySelector('#button');
         this.score = node.querySelector('#score');
         this.lives = node.querySelector('#lives');
+
+        this.styles = {
+            textColor: 'white',
+            primaryColor: 'purple',
+            fontFamily: 'Courier New'
+        };
     }
 
     hideButton() {
@@ -25,6 +33,17 @@ class Overlay {
         this.lives.textContent = `Lives: ${lives}`;
     }
 
+    setStyles(styles) {
+        this.styles = { ...this.styles, ...styles };
+        this.applyStyles();
+    }
+
+    applyStyles() {
+        this.container.style.color = this.styles.textColor;
+        this.fontFamily = this.styles.fontFamily;
+
+        this.button.style.backgroundColor = this.styles.primaryColor;
+    }
 }
 
 export default Overlay;

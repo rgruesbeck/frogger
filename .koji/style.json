@@ -1,8 +1,7 @@
 {
   "style": {
-    "textColor": "#c36cff",
-    "primaryColor": "#37bed1",
-    "backgroundColor": "#41557f",
+    "textColor": "#FFFF00",
+    "primaryColor": "#b7d14f",
     "fontFamily": "https://fonts.googleapis.com/css?family=Pacifico"
   },
   "@@editor": [
@@ -22,11 +21,6 @@
             "key": "primaryColor",
             "name": "Primary Color",
             "description": "Backup Color for theming",
-            "type": "color"
-        },
-        {
-            "key": "backgroundColor",
-            "name": "Background color",
             "type": "color"
         },
         {

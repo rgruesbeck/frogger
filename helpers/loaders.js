@@ -61,7 +61,7 @@ const loadFont = (key, fontSrc) => {
     image.src = link.href;
     image.onerror = function () {
       let match = fontSrc.match(/family=(.*?)$/)[1];
-      let fontName = `"${match.replace('+', ' ')}"`;
+      let fontName = `${match.replace('+', ' ')}`;
       resolve({
         type: 'font',
         key: key,

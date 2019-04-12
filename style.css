@@ -29,15 +29,11 @@ canvas {
     margin: 15vh auto;
     padding: 0.5em;
     max-width: 250px;
-    background-color: blueviolet;
-    border: 5px solid dodgerblue;
     border-radius: 100px;
     text-align: center;
-    font-family: 'Courier New', Courier, monospace;
     font-size: 2em;
     font-weight: bold;
     cursor: pointer;
-    color: white;
 }
 
 .container #score {
@@ -45,10 +41,8 @@ canvas {
     top: 0;
     left: 0;
     padding: 1em;
-    font-family: 'Courier New', Courier, monospace;
     font-size: 2em;
     font-weight: bold;
-    color: white;
 }
 
 .container #lives {
@@ -56,8 +50,6 @@ canvas {
     top: 0;
     right: 0;
     padding: 1em;
-    font-family: 'Courier New', Courier, monospace;
     font-size: 2em;
     font-weight: bold;
-    color: white;
 }

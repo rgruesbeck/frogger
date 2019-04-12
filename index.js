@@ -7,7 +7,8 @@ import {
 import {
     loadList,
     loadImage,
-    loadSound
+    loadSound,
+    loadFont
 } from './helpers/loaders.js';
 import Overlay from './helpers/overlay.js';
 import Player from './gamecharacters/player.js';
@@ -22,7 +23,7 @@ class Game {
         this.canvas.width = window.innerWidth; // set our game screen width
         this.canvas.height = window.innerHeight; // set our game screen height
 
-        this.overlay = overlay;
+        this.overlay = new Overlay(overlay);
 
         // game settings
         this.gameSize = 9;
@@ -36,14 +37,6 @@ class Game {
         this.enemyMinSpeed = parseInt(this.koji.general.enemyMinSpeed);
         this.enemyMaxSpeed = parseInt(this.koji.general.enemyMaxSpeed);
         this.enemySpawnRate = parseInt(this.koji.general.enemySpawnRate);
-
-        console.log(
-            this.enemyWidth,
-            this.enemyHeight,
-            this.enemyMinSpeed,
-            this.enemyMaxSpeed,
-            parseInt(this.enemySpawnRate)
-        );
 
         this.score = 0;
         this.lives = this.koji.general.lives;
@@ -67,9 +60,7 @@ class Game {
 
         this.images = {}; // place to keep our images
         this.sounds = {}; // place to keep our sounds
-        this.fonts = {
-            default: 'Courier New'
-        }; // place to keep our fonts
+        this.fonts = {}; // place to keep our fonts
 
         this.player = null;
         this.enemies = {};
@@ -132,6 +123,7 @@ class Game {
             loadSound('gameoverSound', this.koji.sounds.gameoverSound),
             loadSound('scoreSound', this.koji.sounds.scoreSound),
             loadSound('dieSound', this.koji.sounds.dieSound),
+            loadFont('gameFont', this.koji.style.fontFamily)
         ];
 
         loadList(gameAssets)
@@ -139,10 +131,7 @@ class Game {
 
                 this.images = assets.image; // attach the loaded images
                 this.sounds = assets.sound; // attach the loaded sounds
-                this.fonts = {
-                    ...this.fonts,
-                    ...assets.fonts
-                } // attach the loaded fonts
+                this.fonts = assets.font; // attach the loaded fonts
 
                 this.create();
             });
@@ -150,6 +139,13 @@ class Game {
 
     create() {
         // here we will create our game characters
+
+        // set our overlay styles
+        this.overlay.setStyles({
+            textColor: this.koji.style.textColor,
+            primaryColor: this.koji.style.primaryColor,
+            fontFamily: this.koji.style.fontFamily
+        })
 
         this.topArea = {
             top: 0,
@@ -390,6 +386,6 @@ class Game {
 }
 
 const screen = document.getElementById("game");
-const overlay = new Overlay(document.getElementById("overlay"));
+const overlay = document.getElementById("overlay");
 const frogger = new Game(screen, overlay, config); // here we create a fresh game
 frogger.load(); // and tell it to start
