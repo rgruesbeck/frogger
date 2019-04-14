@@ -87,6 +87,8 @@ canvas {
 }
 
 .container #mute {
+    visibility: hidden;
+    opacity: 0;
     position: absolute;
     bottom: 0;
     right: 0;
@@ -98,4 +100,5 @@ canvas {
     border: 3px solid;
     border-radius: 100%;
     cursor: pointer;
+    transition: opacity 3s;
 }

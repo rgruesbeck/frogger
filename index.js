@@ -221,6 +221,9 @@ class Game {
                 // play background music when its available
                 this.sounds.backgroundMusic.loop = true;
                 this.sounds.backgroundMusic.play();
+
+                // show mute button
+                this.overlay.setMute(this.gameSounds);
             }
 
 

@@ -66,6 +66,7 @@ class Overlay {
 
     setMute(soundsOn) {
         this.mute.textContent = soundsOn ? '🔈' : '🔇';
+        this.show('mute');
     }
 
     show(node) {
