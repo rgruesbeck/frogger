@@ -57,6 +57,7 @@ class Game {
             prev: ''
         }; // our game state (ready, play, win, over)
         this.frame = 0; // our count of frames just like in a movie
+        this.gameSounds = true;
 
         this.images = {}; // place to keep our images
         this.sounds = {}; // place to keep our sounds
@@ -74,37 +75,11 @@ class Game {
         };
 
         // listen for keyboard input
-        document.addEventListener('keydown', ({
-            code
-        }) => this.handleKeyboardInput('keydown', code), false);
-        document.addEventListener('keyup', ({
-            code
-        }) => this.handleKeyboardInput('keyup', code), false);
+        document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
+        document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
 
         // listen for button clicks
-        this.overlay.root.addEventListener('click', () => {
-            this.overlay.hideButton(); // hide button
-
-            // game state is ready
-            // set game state to play
-            if (this.gameState.current === 'ready') {
-                this.setGameState('play');
-            }
-
-            // game state is over:
-            // reset game and set to play
-            if (this.gameState.current === 'over') {
-                this.reset();
-            }
-
-            // game state is win:
-            // reset game and set to play
-            if (this.gameState.current === 'win') {
-                this.reset();
-            }
-
-
-        }, false);
+        this.overlay.root.addEventListener('click', ({ target }) => this.handleOverlayClicks(target), false);
     }
 
     load() {
@@ -187,10 +162,6 @@ class Game {
         this.overlay.setScore(this.score);
         this.overlay.setLives(this.lives);
 
-        // play background music when its available
-        this.sounds.backgroundMusic.loop = true;
-        this.sounds.backgroundMusic.play();
-
         // check for wins or game overs
         if (this.wins < 1) {
             this.setGameState('win');
@@ -246,7 +217,12 @@ class Game {
             if (this.gameState.prev === 'ready') {
                 this.overlay.showStats(); // show our score and lives
                 this.overlay.hideBanner(); // hide our banner
+
+                // play background music when its available
+                this.sounds.backgroundMusic.loop = true;
+                this.sounds.backgroundMusic.play();
             }
+
 
             // draw enemies
             for (let enemyId in this.enemies) {
@@ -364,15 +340,79 @@ class Game {
         }
     }
 
-    pause() {
-        if (this.gamePaused) {
-            this.gamePaused = false;
-            requestAnimationFrame(() => this.play());
-            this.overlay.hideButton();
+    handleOverlayClicks(target) {
+        this.overlay.hideButton(); // hide button
+
+        // clicks on button
+        if (target.id === 'button') {
+            // game state is ready
+            // set game state to play
+            if (this.gameState.current === 'ready') {
+                this.setGameState('play');
+            }
+        }
+
+        // clicks mute button
+        if (target.id === 'mute') {
+            this.toggleSounds();
+        }
+
+
+        // clicks anywhere
+        // game state is over:
+        // reset game and set to play
+        if (this.gameState.current === 'over') {
+            this.reset();
+        }
+
+        // game state is win:
+        // reset game and set to play
+        if (this.gameState.current === 'win') {
+            this.reset();
+        }
+
+    }
+
+    toggleSounds() {
+        this.gameSounds = !this.gameSounds; // toggle gameSounds
+        this.overlay.setMute(this.gameSounds); // update mute display
+
+        // if game sounds enabled, unmute all game sounds
+        // else mute all game sounds
+        if (this.gameSounds) {
+            // unmute all game sounds
+            // and play background music
+            Object.keys(this.sounds).forEach((key) => {
+                this.sounds[key].muted = false;
+                this.sounds.backgroundMusic.play();
+            });
         } else {
-            this.gamePaused = true;
+            // mute all game sounds
+            Object.keys(this.sounds).forEach((key) => {
+                this.sounds[key].muted = true;
+                this.sounds[key].pause();
+            });
+        }
+    }
+
+    pause() {
+        // toggle gamePaused
+        this.gamePaused = !this.gamePaused;
+
+        // paused game
+        // stop animating
+        // show puase button
+        if (this.gamePaused) {
             cancelAnimationFrame(this.frame);
-            this.overlay.showButton('Paused');
+            this.overlay.showBanner('Paused');
+        }
+
+        // unpaused game
+        // start animating
+        // hide puase button
+        if (!this.gamePaused) {
+            requestAnimationFrame(() => this.play());
+            this.overlay.hideBanner();
         }
     }
 

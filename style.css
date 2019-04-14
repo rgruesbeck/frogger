@@ -21,6 +21,7 @@ canvas {
     position: relative;
     font-size: 5vw;
     font-weight: bold;
+    height: 100%;
 }
 
 .container .center {
@@ -83,4 +84,18 @@ canvas {
     right: 0;
     padding: 1em;
     transition: opacity 3s;
+}
+
+.container #mute {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 0.5em;
+    padding: 0.1em 0.2em 0.3em 0.1em;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    border: 3px solid;
+    border-radius: 100%;
+    cursor: pointer;
 }

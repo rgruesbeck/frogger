@@ -1,3 +1,5 @@
+const WebFont = require('webfontloader');
+
 const loadList = (list) => {
   return Promise.all(list)
   .then((assets) => {
@@ -44,38 +46,64 @@ const loadSound = (key, url) => {
   });
 }
 
-const loadFont = (key, fontSrc) => {
+const loadFont = (key, fontName) => {
   return new Promise((resolve, reject) => {
-
-    if (fontSrc && !fontSrc.includes('http')) {
-      resolve(fontSrc);
+    let font = {
+      google: {
+        families: [fontName]
+      },
+      fontactive: function (familyName) {
+        resolve({
+          type: 'font',
+          key: key,
+          value: familyName
+        })
+      }
     }
+    WebFont.load(font);
+  });
+}
 
-    let link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'font';
-    link.href = fontSrc;
+const xloadFont = (key, fontOrUrl) => {
+  return new Promise((resolve, reject) => {
+    // plan
+    // build a url from the fontSrc string
+    // if valid url, resolve the familyName or error out
+    // if error, resolve the string
+    try {
+      let fontUrl = new URL(fontOrUrl);
 
-    // Trick from https://stackoverflow.com/questions/2635814/
-    let image = new Image;
-    image.src = link.href;
-    image.onerror = function () {
-      let match = fontSrc.match(/family=(.*?)$/)[1];
-      let fontName = `${match.replace('+', ' ')}`;
-      let result = {
-        type: 'font',
-        key: key,
-        value: fontName
-      };
-
-      console.log(result);
-
+      WebFont.load({
+        custom: {
+          families: [key],
+          urls: [fontUrl.href],
+          fontactive: (familyName) => {
+            resolve({
+              type: 'font',
+              key: key,
+              value: familyName
+            });
+          },
+          fontinactive: (familyName) => {
+            console.error('Error:', 'browser does not support', familyName);
+            reject({
+              type: 'font',
+              key: key,
+              value: 'Courier New'
+            });
+          }
+        }
+      });
+    } catch (error) {
+      console.log(error);
+      // font is not a url string
       resolve({
         type: 'font',
         key: key,
-        value: fontName
+        value: fontOrUrl
       });
-    };
+    }
+
   });
 }
 

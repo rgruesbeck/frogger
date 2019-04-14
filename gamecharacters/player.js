@@ -16,6 +16,8 @@ class Player {
 
         this.radius = (w + h) / 4;
 
+        this.direction = 'right';
+
         this.bounds = {
             top: 0,
             right: this.ctx.canvas.width - this.width,
@@ -25,8 +27,10 @@ class Player {
     }
 
     move(x, y) {
-        let dx = this.x + x;
-        let dy = this.y + y;
+        let dx = this.x + x; // get new xposition
+        let dy = this.y + y; // get new yposition
+        if (x > 0) { this.direction = 'right'; }
+        if (x < 0) { this.direction = 'left'; }
 
         // update x and cx if within bounds
         if (dx > this.bounds.left && dx < this.bounds.right) {
@@ -42,7 +46,18 @@ class Player {
     }
 
     draw() {
-        this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+        this.ctx.save();
+
+        let scaleX = this.direction === 'left' ? -1 : 1;
+        let posX = this.direction === 'left' ? -1 * this.x : this.x;
+        let trX = this.direction === 'left' ? this.width : 0;
+
+        this.ctx.translate(trX, 0);
+        this.ctx.scale(scaleX, 1);
+
+        this.ctx.drawImage(this.image, posX, this.y, this.width, this.height);
+
+        this.ctx.restore();
     }
 
     collidesWith(entity) {

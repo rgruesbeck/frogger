@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "parcel": "^1.12.3",
-    "watch": "^1.0.2"
+    "watch": "^1.0.2",
+    "webfontloader": "^1.6.28"
   }
 }

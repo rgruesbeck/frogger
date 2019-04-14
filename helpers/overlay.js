@@ -9,6 +9,7 @@ class Overlay {
         this.button = node.querySelector('#button');
         this.score = node.querySelector('#score');
         this.lives = node.querySelector('#lives');
+        this.mute = node.querySelector('#mute');
 
         this.styles = {
             textColor: 'white',
@@ -28,9 +29,10 @@ class Overlay {
     }
 
     showButton(message) {
+        this.button.style.fontFamily = this.styles.fontFamily;
         this.button.textContent = message;
         this.show('button');
-        console.log(this.styles.fontFamily, this.button.style.fontFamily);
+        // console.log(this.styles.fontFamily, this.button.style.fontFamily);
     }
 
     hideButton() {
@@ -60,6 +62,10 @@ class Overlay {
         this.container.style.fontFamily = this.styles.fontFamily;
 
         this.button.style.backgroundColor = this.styles.primaryColor;
+    }
+
+    setMute(soundsOn) {
+        this.mute.textContent = soundsOn ? '🔈' : '🔇';
     }
 
     show(node) {
