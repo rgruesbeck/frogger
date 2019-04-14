@@ -46,15 +46,15 @@ const loadSound = (key, url) => {
 
 const loadFont = (key, fontSrc) => {
   return new Promise((resolve, reject) => {
+
     if (fontSrc && !fontSrc.includes('http')) {
       resolve(fontSrc);
     }
 
     let link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
+    link.rel = 'preload';
+    link.as = 'font';
     link.href = fontSrc;
-    document.getElementsByTagName('head')[0].appendChild(link);
 
     // Trick from https://stackoverflow.com/questions/2635814/
     let image = new Image;
@@ -62,6 +62,14 @@ const loadFont = (key, fontSrc) => {
     image.onerror = function () {
       let match = fontSrc.match(/family=(.*?)$/)[1];
       let fontName = `${match.replace('+', ' ')}`;
+      let result = {
+        type: 'font',
+        key: key,
+        value: fontName
+      };
+
+      console.log(result);
+
       resolve({
         type: 'font',
         key: key,

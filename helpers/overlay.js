@@ -5,6 +5,7 @@ class Overlay {
         this.root = node;
 
         this.container = node.querySelector('.container');
+        this.banner = node.querySelector('#banner');
         this.button = node.querySelector('#button');
         this.score = node.querySelector('#score');
         this.lives = node.querySelector('#lives');
@@ -16,13 +17,29 @@ class Overlay {
         };
     }
 
-    hideButton() {
-        this.button.style.display = 'none';
+    showBanner(message) {
+        this.banner.textContent = message;
+        this.show('banner');
+    }
+
+    hideBanner() {
+        this.banner.style.opacity = 0;
+        this.hide('banner');
     }
 
     showButton(message) {
         this.button.textContent = message;
-        this.button.style.display = 'block';
+        this.show('button');
+        console.log(this.styles.fontFamily, this.button.style.fontFamily);
+    }
+
+    hideButton() {
+        this.hide('button');
+    }
+
+    showStats() {
+        this.show('score');
+        this.show('lives');
     }
 
     setScore(score) {
@@ -40,9 +57,21 @@ class Overlay {
 
     applyStyles() {
         this.container.style.color = this.styles.textColor;
-        this.fontFamily = this.styles.fontFamily;
+        this.container.style.fontFamily = this.styles.fontFamily;
 
         this.button.style.backgroundColor = this.styles.primaryColor;
+    }
+
+    show(node) {
+        this[node].style.visibility = 'visible';
+        this[node].style.opacity = 1;
+    }
+
+    hide(node) {
+        this[node].style.opacity = 0;
+        setTimeout(() => {
+            this[node].style.visibility = 'hidden';
+        }, 2000);
     }
 }
 

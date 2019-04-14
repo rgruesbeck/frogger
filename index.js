@@ -144,7 +144,7 @@ class Game {
         this.overlay.setStyles({
             textColor: this.koji.style.textColor,
             primaryColor: this.koji.style.primaryColor,
-            fontFamily: this.koji.style.fontFamily
+            fontFamily: this.fonts.gameFont
         })
 
         this.topArea = {
@@ -207,6 +207,7 @@ class Game {
             // game is ready to play
             // show start button and wait for player
 
+            this.overlay.showBanner(this.koji.general.name);
             this.overlay.showButton(this.koji.general.startText);
         }
 
@@ -216,7 +217,7 @@ class Game {
             // show celebration, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.showButton(this.koji.general.winText);
+            this.overlay.showBanner(this.koji.general.winText);
             if (this.gameState.prev === 'play') {
                 this.sounds.winSound.play();
                 this.setGameState('win');
@@ -229,7 +230,7 @@ class Game {
             // show game over, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.showButton(this.koji.general.gameoverText);
+            this.overlay.showBanner(this.koji.general.gameoverText);
             this.sounds.backgroundMusic.muted = true;
 
             if (this.gameState.prev === 'play') {
@@ -241,6 +242,11 @@ class Game {
         // game play
         if (this.gameState.current === 'play') {
             // game in session
+
+            if (this.gameState.prev === 'ready') {
+                this.overlay.showStats(); // show our score and lives
+                this.overlay.hideBanner(); // hide our banner
+            }
 
             // draw enemies
             for (let enemyId in this.enemies) {

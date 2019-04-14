@@ -1,7 +1,7 @@
 {
   "general": {
-    "name": "Tokyo Traffic",
-    "startText": "Starts",
+    "name": "Toad Traffic",
+    "startText": "Start",
     "winText": "You Win!",
     "gameoverText": "Game Over",
     "lives": "3",
