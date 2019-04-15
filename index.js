@@ -1,4 +1,4 @@
-// Tokyo Traffic (frogger)
+// Toad Traffic (frogger)
 import config from './config.json';
 import {
     requestAnimationFrame,
@@ -16,12 +16,12 @@ import Enemy from './gamecharacters/enemy.js';
 
 class Game {
     constructor(canvas, overlay, koji) {
-        this.koji = koji; // our customizations from koji
+        this.koji = koji; // customizations from koji
 
-        this.canvas = canvas; // our game screen
-        this.ctx = canvas.getContext("2d"); // our game screen context
-        this.canvas.width = window.innerWidth; // set our game screen width
-        this.canvas.height = window.innerHeight; // set our game screen height
+        this.canvas = canvas; // game screen
+        this.ctx = canvas.getContext("2d"); // game screen context
+        this.canvas.width = window.innerWidth; // set  game screen width
+        this.canvas.height = window.innerHeight; // set  game screen height
 
         this.overlay = new Overlay(overlay);
 
@@ -55,13 +55,13 @@ class Game {
         this.gameState = {
             current: 'ready',
             prev: ''
-        }; // our game state (ready, play, win, over)
-        this.frame = 0; // our count of frames just like in a movie
+        }; // game state (ready, play, win, over)
+        this.frame = 0; // count of frames just like in a movie
         this.gameSounds = true;
 
-        this.images = {}; // place to keep our images
-        this.sounds = {}; // place to keep our sounds
-        this.fonts = {}; // place to keep our fonts
+        this.images = {}; // place to keep  images
+        this.sounds = {}; // place to keep  sounds
+        this.fonts = {}; // place to keep  fonts
 
         this.player = null;
         this.enemies = {};
@@ -74,17 +74,29 @@ class Game {
             down: false
         };
 
+        // mobile input
+        this.mobileInput = {
+            x: 0,
+            y: 0
+        };
+
         // listen for keyboard input
         document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
         document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
+        
+        // listen for touch input
+        document.addEventListener('touchend', (e) => this.handleTouchInput(e), false);
 
         // listen for button clicks
         this.overlay.root.addEventListener('click', ({ target }) => this.handleOverlayClicks(target), false);
+
+        // listen for post message
+        window.addEventListener("message", ({ data }) => this.handleInject(data), false);
     }
 
     load() {
-        // here we will load all our assets
-        // pictures, sounds, and fonts we need for our game
+        // here we will load all  assets
+        // pictures, sounds, and fonts we need for  game
 
         // make a list of assets we want to load
         const gameAssets = [
@@ -113,9 +125,9 @@ class Game {
     }
 
     create() {
-        // here we will create our game characters
+        // here we will create  game characters
 
-        // set our overlay styles
+        // set  overlay styles
         this.overlay.setStyles({
             textColor: this.koji.style.textColor,
             primaryColor: this.koji.style.primaryColor,
@@ -137,8 +149,14 @@ class Game {
             bottom: this.canvas.height
         }
 
-        // todo extract all width and height
+        // create player
         this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - this.playerWidth / 2, this.screen.bottom - this.playerHeight, this.playerWidth, this.playerHeight);
+
+        // set mobileInput to home
+        this.mobileInput = {
+            x: this.player.cx,
+            y: this.player.cy
+        };
 
         const enemyId = Math.random().toString(16).slice(2);
         this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, this.enemyWidth, this.enemyHeight, this.enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
@@ -149,7 +167,7 @@ class Game {
 
     play() {
         // each time play() is called, we will update the positions
-        // of our game character and paint a picture and then call play() again
+        // of game character and paint a picture and then call play() again
         // this way we will create an animation just like the pages of a flip book
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // clears the screen of the last picture
 
@@ -178,8 +196,16 @@ class Game {
             // game is ready to play
             // show start button and wait for player
 
-            this.overlay.showBanner(this.koji.general.name);
-            this.overlay.showButton(this.koji.general.startText);
+            if (!this.overlay.banner.active) {
+                this.overlay.showBanner(this.koji.general.name);
+            }
+            if (!this.overlay.button.active) {
+                this.overlay.showButton(this.koji.general.startText);
+            }
+
+            // show mute button
+            this.overlay.setMute(this.gameSounds);
+
         }
 
         // player wins
@@ -188,7 +214,10 @@ class Game {
             // show celebration, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.showBanner(this.koji.general.winText);
+            if (!this.overlay.banner.active) {
+                this.overlay.showBanner(this.koji.general.winText);
+            }
+
             if (this.gameState.prev === 'play') {
                 this.sounds.winSound.play();
                 this.setGameState('win');
@@ -214,18 +243,19 @@ class Game {
         if (this.gameState.current === 'play') {
             // game in session
 
+
             if (this.gameState.prev === 'ready') {
-                this.overlay.showStats(); // show our score and lives
-                this.overlay.hideBanner(); // hide our banner
+                this.overlay.showStats(); // show  score and lives
+                if (this.overlay.banner.active) {
+                    this.overlay.hideBanner(); // hide  banner
+                }
 
                 // play background music when its available
                 this.sounds.backgroundMusic.loop = true;
-                this.sounds.backgroundMusic.play();
-
-                // show mute button
-                this.overlay.setMute(this.gameSounds);
+                if (this.gameSounds) {
+                    this.sounds.backgroundMusic.play();
+                }
             }
-
 
             // draw enemies
             for (let enemyId in this.enemies) {
@@ -240,20 +270,8 @@ class Game {
                     enemy.move(this.enemyMinSpeed, 0);
                     enemy.draw();
                 }
-
-
-                // check for enemy collisions with the player
-                if (this.player.collidesWith(enemy)) {
-
-                    // when player collides with enemy
-                    // take away one life, play die sound,  and reset player back to safety
-                    this.lives -= 1; // take life
-                    this.sounds.dieSound.play();
-
-                    this.player.x = this.screen.centerX - this.playerWidth; // reset position
-                    this.player.y = this.screen.bottom - this.playerHeight;
-                }
             }
+
 
             // create new enemies
             // spawn a new enemy every n frames
@@ -277,19 +295,18 @@ class Game {
             // reset position back to start
             if (this.player.y + this.player.height - 20 <= this.middleArea.top) {
 
+                this.player.setX(this.screen.centerX - this.playerWidth); // reset position
+                this.player.setY(this.screen.bottom - this.playerHeight);
+                this.mobileInput.x = this.player.cx; // reset position
+                this.mobileInput.y = this.player.cy;
+
+                this.sounds.scoreSound.play();
                 this.wins -= 1;
                 this.score += 100;
-                this.player.x = this.screen.centerX - this.playerWidth; // reset position
-                this.player.y = this.screen.bottom - this.playerHeight;
-                this.sounds.scoreSound.play();
             }
 
-            // get input and update the player's direction
             // draw player
-            let playerDirection = {
-                x: (this.input.left ? -1 : 0) + (this.input.right ? 1 : 0),
-                y: (this.input.up ? -1 : 0) + (this.input.down ? 1 : 0)
-            };
+            let playerDirection = this.getDirection();
 
             this.player.move(playerDirection.x * this.playerSpeed, playerDirection.y * this.playerSpeed);
             this.player.draw();
@@ -297,18 +314,36 @@ class Game {
             // draw gems and powerups
 
             // enemy hits player:
+            // check for enemy collisions with the player
+            let enemies = Object.keys(this.enemies)
+            .map((key) => { return this.enemies[key]; });
+
+            if (this.player.collisionsWith(enemies)) {
+                // when player collides with enemy
+                // take away one life, play die sound,  and reset player back to safety
+
+                this.player.setX(this.screen.centerX - this.playerWidth); // reset position
+                this.player.setY(this.screen.bottom - this.playerHeight);
+                this.mobileInput.x = this.player.cx; // reset position
+                this.mobileInput.y = this.player.cy;
+
+                this.sounds.dieSound.play();
+                this.lives -= 1; // take life
+            }
+
 
             // player gets powerup
         }
 
         // paint the next screen
         this.frame = requestAnimationFrame(() => this.play());
-        this.frameTime = Date.now();
     }
 
     handleKeyboardInput(type, code) {
 
         if (type === 'keydown') {
+            this.input.active = true;
+
             if (code === 'ArrowUp') {
                 this.input.up = true
             }
@@ -340,6 +375,25 @@ class Game {
             if (code === 'Space') {
                 this.pause();
             } // spacebar: pause and play game
+        }
+    }
+
+    handleTouchInput(e) {
+        // handle touches
+        // update intended location
+
+        // unless just started
+        if (this.gameState.current === 'ready') { return; }
+
+        // unless muting 
+        if (e.target.id === 'mute') { return; }
+
+        this.input.active = false; // set keyboard input inactive
+        const { clientX, clientY } = e.changedTouches[0];
+
+        this.mobileInput = {
+            x: Math.floor(clientX),
+            y: Math.floor(clientY)
         }
     }
 
@@ -399,6 +453,8 @@ class Game {
     }
 
     pause() {
+        if (this.gameState.current != 'play') { return; }
+
         // toggle gamePaused
         this.gamePaused = !this.gamePaused;
 
@@ -418,6 +474,56 @@ class Game {
             this.overlay.hideBanner();
         }
     }
+    
+    getDirection() {
+            // get input and update the player's direction
+            if (this.input.active) {
+
+                // walk in direction of pressed arrow keys
+                return {
+                    x: (this.input.left ? -1 : 0) + (this.input.right ? 1 : 0),
+                    y: (this.input.up ? -1 : 0) + (this.input.down ? 1 : 0)
+                };
+            } else {
+                // walk to touched point on screen
+                return this.getPathToPoint();
+            }
+    }
+
+    getPathToPoint() {
+        // rist calculate the direction to the point
+
+        let dx = this.mobileInput.x - this.player.cx;
+        let adx = Math.abs(dx);
+        let inrangeX = adx > this.player.width/8; // stop if in range
+
+        let x = inrangeX ?
+            (this.mobileInput.x < this.player.cx ? -1 : 0) +
+            (this.mobileInput.x > this.player.cx ? 1 : 0) :
+            0;
+
+        let dy = this.mobileInput.y - this.player.cy;
+        let ady = Math.abs(dy);
+        let inrangeY = ady > this.player.height/8; // stop if in range
+
+        let y = inrangeY ?
+            (this.mobileInput.y < this.player.cy ? -1 : 0) +
+            (this.mobileInput.y > this.player.cy ? 1 : 0) :
+            0;
+
+        // smooth out path to touched point
+        if (adx > ady) {
+            return {
+                x: x,
+                y: y * (ady/adx)
+            }
+        } else {
+            return {
+                x: x * (adx/ady),
+                y: y 
+            }
+        }
+    }
 
     setGameState(state) {
         this.gameState = {
@@ -431,6 +537,14 @@ class Game {
 
     reset() {
         document.location.reload();
+    }
+
+    handleInject(data) {
+        if (data.action === 'injectGlobal') {
+            let { scope, key, value } = data.payload;
+            this.koji[scope][key] = value;
+            this.reset();
+        }
     }
 }
 

@@ -34,15 +34,23 @@ class Player {
 
         // update x and cx if within bounds
         if (dx > this.bounds.left && dx < this.bounds.right) {
-            this.x = dx;
-            this.cx = this.x + (this.width/2);
+            this.setX(dx);
         }
 
         // update y and cy if within bounds
         if (dy > this.bounds.top && dy < this.bounds.bottom) {
-            this.y = dy;
-            this.cy = this.y + (this.height/2);
+            this.setY(dy);
         }
+    }
+
+    setX(x) {
+        this.x = x;
+        this.cx = this.x + (this.width/2);
+    }
+
+    setY(y) {
+        this.y = y;
+        this.cy = this.y + (this.height/2);
     }
 
     draw() {
@@ -59,6 +67,14 @@ class Player {
 
         this.ctx.restore();
     }
+
+    collisionsWith(entities) {
+        for (let i = 0; i < entities.length; i++) {
+            const e = entities[i];
+            if (this.collidesWith(e)) { return true; }
+        }
+        return false;
+    };
 
     collidesWith(entity) {
         let vx = entity.cx - this.cx;

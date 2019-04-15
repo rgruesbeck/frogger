@@ -24,7 +24,6 @@ class Overlay {
     }
 
     hideBanner() {
-        this.banner.style.opacity = 0;
         this.hide('banner');
     }
 
@@ -32,7 +31,6 @@ class Overlay {
         this.button.style.fontFamily = this.styles.fontFamily;
         this.button.textContent = message;
         this.show('button');
-        // console.log(this.styles.fontFamily, this.button.style.fontFamily);
     }
 
     hideButton() {
@@ -65,20 +63,20 @@ class Overlay {
     }
 
     setMute(soundsOn) {
-        this.mute.textContent = soundsOn ? '🔈' : '🔇';
+        this.mute.textContent = soundsOn ? 'volume_up' : 'volume_off';
         this.show('mute');
     }
 
     show(node) {
+        this[node].active = true;
         this[node].style.visibility = 'visible';
         this[node].style.opacity = 1;
     }
 
     hide(node) {
+        this[node].active = false;
         this[node].style.opacity = 0;
-        setTimeout(() => {
-            this[node].style.visibility = 'hidden';
-        }, 2000);
+        this[node].style.visibility = 'hidden';
     }
 }
 

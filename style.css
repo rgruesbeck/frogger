@@ -72,7 +72,7 @@ canvas {
     position: absolute;
     top: 0;
     left: 0;
-    padding: 1em;
+    padding: 0.5em;
     transition: opacity 3s;
 }
 
@@ -80,9 +80,9 @@ canvas {
     visibility: hidden;
     opacity: 0;
     position: absolute;
-    top: 0;
-    right: 0;
-    padding: 1em;
+    top: 1.5em;
+    left: 0;
+    padding: 0.5em;
     transition: opacity 3s;
 }
 
@@ -90,10 +90,10 @@ canvas {
     visibility: hidden;
     opacity: 0;
     position: absolute;
-    bottom: 0;
-    right: 0;
-    margin: 0.5em;
-    padding: 0.1em 0.2em 0.3em 0.1em;
+    top: 0.5em;
+    right: 0.5em;
+    margin: auto;
+    padding: 0.15em;
     width: 1em;
     height: 1em;
     text-align: center;
@@ -101,4 +101,5 @@ canvas {
     border-radius: 100%;
     cursor: pointer;
     transition: opacity 3s;
+    font-size: 6vw;
 }

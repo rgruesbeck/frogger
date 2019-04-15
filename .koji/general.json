@@ -6,10 +6,10 @@
     "gameoverText": "Game Over",
     "lives": "3",
     "wins": "3",
-    "playerSpeed": "15",
-    "enemyMinSpeed": "5",
-    "enemyMaxSpeed": "10",
-    "enemySpawnRate": "30"
+    "playerSpeed": "10",
+    "enemyMinSpeed": "2",
+    "enemyMaxSpeed": "5",
+    "enemySpawnRate": "60"
   },
   "@@editor": [
     {
