@@ -20,8 +20,6 @@ class Game {
 
         this.canvas = canvas; // game screen
         this.ctx = canvas.getContext("2d"); // game screen context
-        this.canvas.width = window.innerWidth; // set  game screen width
-        this.canvas.height = window.innerHeight; // set  game screen height
 
         this.overlay = new Overlay(overlay);
 
@@ -35,11 +33,22 @@ class Game {
         // listen for button clicks
         this.overlay.root.addEventListener('click', (e) => this.handleOverlayClicks(e), false);
 
+        // listen for resize events
+        window.addEventListener("resize", (e) => this.handleResize(e), false);
+
         // listen for post message
         window.addEventListener("message", ({ data }) => this.handleInject(data), false);
     }
 
     init() {
+        // reset previous game loop
+        if (this.frame > 0) {
+            cancelAnimationFrame(this.frame);
+        }
+
+        this.canvas.width = window.innerWidth; // set  game screen width
+        this.canvas.height = window.innerHeight; // set  game screen height
+            
         // initialize game settings
         this.gameSize = 9;
 
@@ -95,7 +104,7 @@ class Game {
             x: 0,
             y: 0
         };
-            
+
         // reset overlays
         this.overlay.banner.active = false;
         this.overlay.button.active = false;
@@ -559,6 +568,10 @@ class Game {
         let dt = Date.now() - ft;
         let s = (w + h) / 2;
         return (s * dt) / 10000;
+    }
+
+    handleResize(e) {
+        this.load();
     }
 
     handleInject(data) {
