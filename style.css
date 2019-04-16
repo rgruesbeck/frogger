@@ -19,7 +19,7 @@ canvas {
 
 .container {
     position: relative;
-    font-size: 5vw;
+    font-size: calc(1vw + 2vh);
     font-weight: bold;
     height: 100%;
 }
@@ -30,7 +30,7 @@ canvas {
     justify-content: flex-start;
     padding-top: 25vh;
     padding-bottom: 25vh;
-    font-size: 10vw;
+    font-size: calc(2vw + 4vh);
 }
 
 @keyframes button {
@@ -74,7 +74,7 @@ canvas {
     position: absolute;
     top: 0;
     left: 0;
-    padding: 0.5em;
+    padding: 0.25em;
     transition: opacity 3s;
 }
 
@@ -84,7 +84,7 @@ canvas {
     position: absolute;
     top: 1.5em;
     left: 0;
-    padding: 0.5em;
+    padding: 0.25em;
     transition: opacity 3s;
 }
 
@@ -95,7 +95,7 @@ canvas {
     top: 0.5em;
     right: 0.5em;
     margin: auto;
-    padding: 0.15em;
+    padding: 0.25em;
     width: 1em;
     height: 1em;
     text-align: center;
@@ -103,5 +103,5 @@ canvas {
     border-radius: 100%;
     cursor: pointer;
     transition: opacity 3s;
-    font-size: 6vw;
+    font-size: calc(1vw + 2vh);
 }
