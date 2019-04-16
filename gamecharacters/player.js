@@ -1,7 +1,7 @@
 // Player character
 
 class Player {
-    constructor(ctx, image, x, y, w, h) {
+    constructor(ctx, image, x, y, w, h, s) {
         this.ctx = ctx;
         this.image = image;
 
@@ -16,6 +16,8 @@ class Player {
 
         this.radius = (w + h) / 4;
 
+        this.speed = s || 1;
+
         this.direction = 'right';
 
         this.bounds = {
@@ -26,21 +28,20 @@ class Player {
         };
     }
 
-    move(x, y) {
-        let dx = this.x + x; // get new xposition
-        let dy = this.y + y; // get new yposition
+    move(x, y, m) {
+        let dx = x === 0 ? this.x : this.x + (x * this.speed * m);
+        let dy = y === 0 ? this.y : this.y + (y * this.speed * m);
+        
+        // apply bounds
+        let inBoundsX = dx >= this.bounds.left && dx <= this.bounds.right;
+        if (inBoundsX) { this.setX(dx); }
+
+        let inBoundsY = dy >= this.bounds.top && dy <= this.bounds.bottom;
+        if (inBoundsY) { this.setY(dy); }
+
+        // set direction
         if (x > 0) { this.direction = 'right'; }
         if (x < 0) { this.direction = 'left'; }
-
-        // update x and cx if within bounds
-        if (dx > this.bounds.left && dx < this.bounds.right) {
-            this.setX(dx);
-        }
-
-        // update y and cy if within bounds
-        if (dy > this.bounds.top && dy < this.bounds.bottom) {
-            this.setY(dy);
-        }
     }
 
     setX(x) {
@@ -69,11 +70,11 @@ class Player {
     }
 
     collisionsWith(entities) {
-        for (let i = 0; i < entities.length; i++) {
-            const e = entities[i];
-            if (this.collidesWith(e)) { return true; }
-        }
-        return false;
+        let result = Object.entries(entities)
+        .find((ent) => { return this.collidesWith(ent[1]); })
+        ? true : false;
+
+        return result;
     };
 
     collidesWith(entity) {

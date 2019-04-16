@@ -64,47 +64,4 @@ const loadFont = (key, fontName) => {
   });
 }
 
-const xloadFont = (key, fontOrUrl) => {
-  return new Promise((resolve, reject) => {
-    // plan
-    // build a url from the fontSrc string
-    // if valid url, resolve the familyName or error out
-    // if error, resolve the string
-    try {
-      let fontUrl = new URL(fontOrUrl);
-
-      WebFont.load({
-        custom: {
-          families: [key],
-          urls: [fontUrl.href],
-          fontactive: (familyName) => {
-            resolve({
-              type: 'font',
-              key: key,
-              value: familyName
-            });
-          },
-          fontinactive: (familyName) => {
-            console.error('Error:', 'browser does not support', familyName);
-            reject({
-              type: 'font',
-              key: key,
-              value: 'Courier New'
-            });
-          }
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      // font is not a url string
-      resolve({
-        type: 'font',
-        key: key,
-        value: fontOrUrl
-      });
-    }
-
-  });
-}
-
 export { loadList, loadImage, loadSound, loadFont };

@@ -1,12 +1,12 @@
 {
   "general": {
     "name": "Toad Traffic",
-    "startText": "Start",
+    "startText": "Play",
     "winText": "You Win!",
     "gameoverText": "Game Over",
     "lives": "3",
     "wins": "3",
-    "playerSpeed": "10",
+    "playerSpeed": "4",
     "enemyMinSpeed": "2",
     "enemyMaxSpeed": "5",
     "enemySpawnRate": "60"

@@ -56,14 +56,16 @@ canvas {
     margin: 0 auto;
     padding: 1vh 5vw;
     border-radius: 100px;
+    box-shadow: 0 1px 1em 0 rgba(0, 0, 0, 0.42);
     text-align: center;
     cursor: pointer;
     animation: button 2s ease-in-out infinite;
     transition: opacity 1s;
+    transition: box-shadow 1s;
 }
 
 .container #button:hover {
-    background-color: rgba(0,0,0,0.3);
+    box-shadow: 0 1px 2em 0 rgba(0, 0, 0, 0.72);
 }
 
 .container #score {

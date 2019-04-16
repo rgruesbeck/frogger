@@ -16,14 +16,24 @@ class Enemy {
 
         this.radius = (w + h) / 4;
 
-        this.speed = s;
+        this.speed = s || 0;
     }
 
-    move(x, y) {
-        this.x += x + this.speed;
-        this.y += y;
+    move(x, y, m) {
+        let dx = x === 0 ? this.x : this.x + (x * this.speed * m);
+        let dy = y === 0 ? this.y : this.y + (y * this.speed * m);
 
+        this.setX(dx);
+        this.setY(dy);
+    }
+
+    setX(x) {
+        this.x = x;
         this.cx = this.x + (this.width/2);
+    }
+
+    setY(y) {
+        this.y = y;
         this.cy = this.y + (this.height/2);
     }
 

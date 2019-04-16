@@ -1,7 +1,8 @@
 {
   "style": {
-    "textColor": "#FFFF00",
-    "primaryColor": "#b7d14f",
+    "textColor": "#f8fd19",
+    "primaryColor": "#93c223",
+    "backgroundColor": "green",
     "fontFamily": "Bungee Shade"
   },
   "@@editor": [
@@ -12,16 +13,22 @@
       "source": "style.json",
       "fields": [
         {
-            "key": "textColor",
-            "name": "Text color",
-            "description": "Default color for text",
-            "type": "color"
+          "key": "textColor",
+          "name": "Text color",
+          "description": "Default color for text",
+          "type": "color"
         },
         {
-            "key": "primaryColor",
-            "name": "Primary Color",
-            "description": "Backup Color for theming",
-            "type": "color"
+          "key": "primaryColor",
+          "name": "Primary Color",
+          "description": "Primary Color",
+          "type": "color"
+        },
+        {
+          "key": "backgroundColor",
+          "name": "Background Color",
+          "description": "Background Color",
+          "type": "color"
         },
         {
           "key": "fontFamily",

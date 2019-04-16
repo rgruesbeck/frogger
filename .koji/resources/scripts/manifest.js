@@ -17,7 +17,7 @@ module.exports = () => {
     theme_color: style.primaryColor,
     icons: [{
       src: metadata.icon,
-      sizes: '32x32',
+      sizes: '512x512',
     }],
   }
 

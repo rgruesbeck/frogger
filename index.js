@@ -25,7 +25,22 @@ class Game {
 
         this.overlay = new Overlay(overlay);
 
-        // game settings
+        // listen for keyboard input
+        document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
+        document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
+        
+        // listen for touch input
+        document.addEventListener('touchend', (e) => this.handleTouchInput(e), false);
+
+        // listen for button clicks
+        this.overlay.root.addEventListener('click', (e) => this.handleOverlayClicks(e), false);
+
+        // listen for post message
+        window.addEventListener("message", ({ data }) => this.handleInject(data), false);
+    }
+
+    init() {
+        // initialize game settings
         this.gameSize = 9;
 
         this.playerWidth = this.canvas.height / this.gameSize;
@@ -57,6 +72,7 @@ class Game {
             prev: ''
         }; // game state (ready, play, win, over)
         this.frame = 0; // count of frames just like in a movie
+        this.frameTime = Date.now();
         this.gameSounds = true;
 
         this.images = {}; // place to keep  images
@@ -79,26 +95,19 @@ class Game {
             x: 0,
             y: 0
         };
-
-        // listen for keyboard input
-        document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
-        document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
-        
-        // listen for touch input
-        document.addEventListener('touchend', (e) => this.handleTouchInput(e), false);
-
-        // listen for button clicks
-        this.overlay.root.addEventListener('click', ({ target }) => this.handleOverlayClicks(target), false);
-
-        // listen for post message
-        window.addEventListener("message", ({ data }) => this.handleInject(data), false);
+            
+        // reset overlays
+        this.overlay.banner.active = false;
+        this.overlay.button.active = false;
     }
 
     load() {
         // here we will load all  assets
         // pictures, sounds, and fonts we need for  game
+        
+        this.init();
 
-        // make a list of assets we want to load
+        // make a list of assets to load
         const gameAssets = [
             loadImage('topImage', this.koji.images.topImage),
             loadImage('middleImage', this.koji.images.middleImage),
@@ -150,17 +159,13 @@ class Game {
         }
 
         // create player
-        this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - this.playerWidth / 2, this.screen.bottom - this.playerHeight, this.playerWidth, this.playerHeight);
+        this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - this.playerWidth / 2, this.screen.bottom - this.playerHeight, this.playerWidth, this.playerHeight, this.playerSpeed);
 
         // set mobileInput to home
         this.mobileInput = {
             x: this.player.cx,
             y: this.player.cy
         };
-
-        const enemyId = Math.random().toString(16).slice(2);
-        this.enemies[enemyId] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, this.enemyWidth, this.enemyHeight, this.enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
-
 
         this.play();
     }
@@ -170,6 +175,9 @@ class Game {
         // of game character and paint a picture and then call play() again
         // this way we will create an animation just like the pages of a flip book
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // clears the screen of the last picture
+
+        // get movement modifier for the frame
+        const modifier = this.getMovementModifier(this.canvas.width, this.canvas.height, this.frameTime);
 
         // draw top, middle, and bottom areas
         this.ctx.drawImage(this.images.topImage, 0, 0, this.canvas.width, this.topArea.bottom);
@@ -258,24 +266,25 @@ class Game {
             }
 
             // draw enemies
-            for (let enemyId in this.enemies) {
+            if (Object.entries(this.enemies).length > 0) {
+                for (let enemyId in this.enemies) {
                 let enemy = this.enemies[enemyId];
-
 
                 // remove the enemy if offscreen
                 // else update enemy position and draw enemy
                 if (enemy.x > this.canvas.width) {
-                    delete this.enemies[enemyId];
+                    delete this.enemies[enemyId]
                 } else {
-                    enemy.move(this.enemyMinSpeed, 0);
+                    enemy.move(this.enemyMinSpeed, 0, modifier);
                     enemy.draw();
                 }
+            }
             }
 
 
             // create new enemies
             // spawn a new enemy every n frames
-            if (this.frame % this.enemySpawnRate === 0) {
+            if (this.frame % this.enemySpawnRate === 0 || this.frame === 0) {
 
                 const id = Math.random().toString(16).slice(2);
                 this.enemies[id] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, this.enemyWidth, this.enemyHeight, this.enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
@@ -308,17 +317,15 @@ class Game {
             // draw player
             let playerDirection = this.getDirection();
 
-            this.player.move(playerDirection.x * this.playerSpeed, playerDirection.y * this.playerSpeed);
+            this.player.move(playerDirection.x, playerDirection.y, modifier);
             this.player.draw();
 
             // draw gems and powerups
 
             // enemy hits player:
             // check for enemy collisions with the player
-            let enemies = Object.keys(this.enemies)
-            .map((key) => { return this.enemies[key]; });
 
-            if (this.player.collisionsWith(enemies)) {
+            if (this.player.collisionsWith(this.enemies)) {
                 // when player collides with enemy
                 // take away one life, play die sound,  and reset player back to safety
 
@@ -336,6 +343,7 @@ class Game {
         }
 
         // paint the next screen
+        this.frameTime = Date.now();
         this.frame = requestAnimationFrame(() => this.play());
     }
 
@@ -397,7 +405,9 @@ class Game {
         }
     }
 
-    handleOverlayClicks(target) {
+    handleOverlayClicks(e) {
+        let { target } = e;
+
         this.overlay.hideButton(); // hide button
 
         // clicks on button
@@ -428,6 +438,7 @@ class Game {
             this.reset();
         }
 
+        e.stopPropagation();
     }
 
     toggleSounds() {
@@ -470,7 +481,8 @@ class Game {
         // start animating
         // hide puase button
         if (!this.gamePaused) {
-            requestAnimationFrame(() => this.play());
+            this.frameTime = Date.now();
+            this.frame = requestAnimationFrame(() => this.play());
             this.overlay.hideBanner();
         }
     }
@@ -491,11 +503,12 @@ class Game {
     }
 
     getPathToPoint() {
-        // rist calculate the direction to the point
+        // calculate the direction to the point
 
         let dx = this.mobileInput.x - this.player.cx;
         let adx = Math.abs(dx);
-        let inrangeX = adx > this.player.width/8; // stop if in range
+        let inrangeX = adx > this.player.width/8;
+        // stop if in range
 
         let x = inrangeX ?
             (this.mobileInput.x < this.player.cx ? -1 : 0) +
@@ -504,7 +517,8 @@ class Game {
 
         let dy = this.mobileInput.y - this.player.cy;
         let ady = Math.abs(dy);
-        let inrangeY = ady > this.player.height/8; // stop if in range
+        let inrangeY = ady > this.player.height/8;
+        // stop if in range
 
         let y = inrangeY ?
             (this.mobileInput.y < this.player.cy ? -1 : 0) +
@@ -539,12 +553,23 @@ class Game {
         document.location.reload();
     }
 
+    getMovementModifier(w, h, ft) {
+        // smooth out character movement
+        // for different screen sizes and browser frame rates
+        let dt = Date.now() - ft;
+        let s = (w + h) / 2;
+        return (s * dt) / 10000;
+    }
+
     handleInject(data) {
-        if (data.action === 'injectGlobal') {
-            let { scope, key, value } = data.payload;
-            this.koji[scope][key] = value;
-            this.reset();
-        }
+      console.log(data);
+      if (data.action === 'injectGlobal') {
+        let { scope, key, value } = data.payload;
+        console.log(data.payload, scope, key, value);
+        
+        this.koji[scope][key] = value;
+        this.load();
+      }
     }
 }
 
