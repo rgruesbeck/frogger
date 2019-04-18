@@ -103,5 +103,5 @@ canvas {
     border-radius: 100%;
     cursor: pointer;
     transition: opacity 3s;
-    font-size: calc(1vw + 2vh);
+    font-size: calc(2vw + 3vh);
 }

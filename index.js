@@ -82,7 +82,7 @@ class Game {
         }; // game state (ready, play, win, over)
         this.frame = 0; // count of frames just like in a movie
         this.frameTime = Date.now();
-        this.gameSounds = true;
+        this.gameSounds = false;
 
         this.images = {}; // place to keep  images
         this.sounds = {}; // place to keep  sounds
@@ -222,7 +222,6 @@ class Game {
 
             // show mute button
             this.overlay.setMute(this.gameSounds);
-
         }
 
         // player wins
@@ -425,6 +424,10 @@ class Game {
             // set game state to play
             if (this.gameState.current === 'ready') {
                 this.setGameState('play');
+
+                // double mute ios hack
+                this.toggleSounds();
+                this.toggleSounds();
             }
         }
 

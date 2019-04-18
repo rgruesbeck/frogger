@@ -43,6 +43,7 @@ const loadSound = (key, url) => {
         value: sound
       });
     }
+    sound.load();
   });
 }
 
