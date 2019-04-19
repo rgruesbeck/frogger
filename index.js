@@ -4,12 +4,14 @@ import {
     requestAnimationFrame,
     cancelAnimationFrame
 } from './helpers/animationframe.js';
+
 import {
     loadList,
     loadImage,
     loadSound,
     loadFont
 } from './helpers/loaders.js';
+
 import Overlay from './helpers/overlay.js';
 import Player from './gamecharacters/player.js';
 import Enemy from './gamecharacters/enemy.js';
@@ -20,8 +22,51 @@ class Game {
 
         this.canvas = canvas; // game screen
         this.ctx = canvas.getContext("2d"); // game screen context
+        this.canvas.width = window.innerWidth; // set  game screen width
+        this.canvas.height = window.innerHeight; // set  game screen height
+            
 
         this.overlay = new Overlay(overlay);
+
+        // frame count and rate
+        // just a place to keep track of frame rate (not set it)
+        this.frame = {
+            count: 0,
+            rate: 60,
+            time: Date.now()
+        };
+
+        // game settings
+        this.state = {
+            current: 'ready',
+            prev: 'loading',
+            paused: false,
+            muted: localStorage.getItem('toadtraffic-muted') === 'true'
+        };
+
+        this.input = {
+            active: 'keyboard',
+            keyboard: { up: false, right: false, left: false, down: false },
+            mouse: { x: 0, y: 0, click: false },
+            touch: { x: 0, y: 0 },
+        };
+
+        this.screen = {
+            top: 0,
+            bottom: this.canvas.height,
+            left: 0,
+            right: this.canvas.width,
+            centerX: this.canvas.width / 2,
+            centerY: this.canvas.height / 2,
+            scale: ((this.canvas.width + this.canvas.height) / 2) * 0.003
+        };
+
+        this.images = {}; // place to keep images
+        this.sounds = {}; // place to keep sounds
+        this.fonts = {}; // place to keep fonts
+
+        this.player = {};
+        this.enemies = {};
 
         // listen for keyboard input
         document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
@@ -35,6 +80,7 @@ class Game {
 
         // listen for resize events
         window.addEventListener("resize", (e) => this.handleResize(e), false);
+        window.addEventListener("orientationchange", (e) => this.handleResize(e), false);
 
         // listen for post message
         window.addEventListener("message", ({ data }) => this.handleInject(data), false);
@@ -42,13 +88,10 @@ class Game {
 
     init() {
         // reset previous game loop
-        if (this.frame > 0) {
-            cancelAnimationFrame(this.frame);
+        if (this.frame.count > 0) {
+            this.cancelFrame();
         }
 
-        this.canvas.width = window.innerWidth; // set  game screen width
-        this.canvas.height = window.innerHeight; // set  game screen height
-            
         // initialize game settings
         this.gameSize = 9;
 
@@ -66,44 +109,6 @@ class Game {
         this.lives = this.koji.general.lives;
         this.wins = this.koji.general.wins;
 
-        this.screen = {
-            top: 0,
-            bottom: this.canvas.height,
-            left: 0,
-            right: this.canvas.width,
-            centerX: this.canvas.width / 2,
-            centerY: this.canvas.height / 2,
-        };
-
-        this.gamePaused = false; // game paused or not (true, false)
-        this.gameState = {
-            current: 'ready',
-            prev: ''
-        }; // game state (ready, play, win, over)
-        this.frame = 0; // count of frames just like in a movie
-        this.frameTime = Date.now();
-        this.gameSounds = false;
-
-        this.images = {}; // place to keep  images
-        this.sounds = {}; // place to keep  sounds
-        this.fonts = {}; // place to keep  fonts
-
-        this.player = null;
-        this.enemies = {};
-
-        // keyboard input
-        this.input = {
-            up: false,
-            right: false,
-            left: false,
-            down: false
-        };
-
-        // mobile input
-        this.mobileInput = {
-            x: 0,
-            y: 0
-        };
 
         // reset overlays
         this.overlay.banner.active = false;
@@ -139,6 +144,9 @@ class Game {
                 this.fonts = assets.font; // attach the loaded fonts
 
                 this.create();
+
+                this.overlay.hideLoading();
+                this.canvas.style.opacity = 1;
             });
     }
 
@@ -171,7 +179,7 @@ class Game {
         this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - this.playerWidth / 2, this.screen.bottom - this.playerHeight, this.playerWidth, this.playerHeight, this.playerSpeed);
 
         // set mobileInput to home
-        this.mobileInput = {
+        this.input.touch = {
             x: this.player.cx,
             y: this.player.cy
         };
@@ -185,8 +193,7 @@ class Game {
         // this way we will create an animation just like the pages of a flip book
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // clears the screen of the last picture
 
-        // get movement modifier for the frame
-        const modifier = this.getMovementModifier(this.canvas.width, this.canvas.height, this.frameTime);
+
 
         // draw top, middle, and bottom areas
         this.ctx.drawImage(this.images.topImage, 0, 0, this.canvas.width, this.topArea.bottom);
@@ -199,17 +206,17 @@ class Game {
 
         // check for wins or game overs
         if (this.wins < 1) {
-            this.setGameState('win');
+            this.setState({ current: 'win' });
         }
 
         if (this.lives < 1) {
-            this.setGameState('over');
+            this.setState({ current: 'over' });
         }
 
 
 
         // ready to play
-        if (this.gameState.current === 'ready') {
+        if (this.state.current === 'ready') {
             // game is ready to play
             // show start button and wait for player
 
@@ -221,11 +228,11 @@ class Game {
             }
 
             // show mute button
-            this.overlay.setMute(this.gameSounds);
+            this.overlay.setMute(this.state.muted);
         }
 
         // player wins
-        if (this.gameState.current === 'win') {
+        if (this.state.current === 'win') {
             // player wins!
             // show celebration, wait for awhile then
             // got to 'ready' state
@@ -234,33 +241,32 @@ class Game {
                 this.overlay.showBanner(this.koji.general.winText);
             }
 
-            if (this.gameState.prev === 'play') {
+            if (this.state.prev === 'play') {
                 this.sounds.winSound.play();
-                this.setGameState('win');
+                this.setState({ current: 'win' });
             }
         }
 
         // game over
-        if (this.gameState.current === 'over') {
+        if (this.state.current === 'over') {
             // player wins!
             // show game over, wait for awhile then
             // got to 'ready' state
 
             this.overlay.showBanner(this.koji.general.gameoverText);
-            this.sounds.backgroundMusic.muted = true;
 
-            if (this.gameState.prev === 'play') {
+            if (this.state.prev === 'play') {
                 this.sounds.gameoverSound.play();
-                this.setGameState('over');
+                this.setState({ current: 'over' });
             }
         }
 
         // game play
-        if (this.gameState.current === 'play') {
+        if (this.state.current === 'play') {
             // game in session
 
 
-            if (this.gameState.prev === 'ready') {
+            if (this.state.prev === 'ready') {
                 this.overlay.showStats(); // show  score and lives
                 if (this.overlay.banner.active) {
                     this.overlay.hideBanner(); // hide  banner
@@ -268,7 +274,7 @@ class Game {
 
                 // play background music when its available
                 this.sounds.backgroundMusic.loop = true;
-                if (this.gameSounds) {
+                if (!this.state.muted) {
                     this.sounds.backgroundMusic.play();
                 }
             }
@@ -283,7 +289,7 @@ class Game {
                 if (enemy.x > this.canvas.width) {
                     delete this.enemies[enemyId]
                 } else {
-                    enemy.move(this.enemyMinSpeed, 0, modifier);
+                    enemy.move(this.enemyMinSpeed, 0, this.frame.scale);
                     enemy.draw();
                 }
             }
@@ -292,7 +298,7 @@ class Game {
 
             // create new enemies
             // spawn a new enemy every n frames
-            if (this.frame % this.enemySpawnRate === 0 || this.frame === 0) {
+            if (this.frame.count % this.enemySpawnRate === 0 || this.frame.count === 0) {
 
                 const id = Math.random().toString(16).slice(2);
                 this.enemies[id] = Enemy.spawn(this.ctx, this.images.enemyImage, this.middleArea.top, this.middleArea.bottom, this.enemyWidth, this.enemyHeight, this.enemyMaxSpeed); // spawn takes context, image, topbound, bottombound, width, height, maxSpeed
@@ -301,7 +307,7 @@ class Game {
 
             // if player is in the middle area
             // add to the score every 30 frames
-            if (this.frame % 30 === 0) {
+            if (this.frame.count % 30 === 0) {
                 if (this.player.y > this.middleArea.top && this.player.y < this.middleArea.bottom) {
                     this.score += 1;
                 }
@@ -314,8 +320,8 @@ class Game {
 
                 this.player.setX(this.screen.centerX - this.playerWidth); // reset position
                 this.player.setY(this.screen.bottom - this.playerHeight);
-                this.mobileInput.x = this.player.cx; // reset position
-                this.mobileInput.y = this.player.cy;
+                this.input.touch.x = this.player.cx; // reset position
+                this.input.touch.y = this.player.cy;
 
                 this.sounds.scoreSound.play();
                 this.wins -= 1;
@@ -325,7 +331,7 @@ class Game {
             // draw player
             let playerDirection = this.getDirection();
 
-            this.player.move(playerDirection.x, playerDirection.y, modifier);
+            this.player.move(playerDirection.x, playerDirection.y, this.frame.scale);
             this.player.draw();
 
             // draw gems and powerups
@@ -339,8 +345,8 @@ class Game {
 
                 this.player.setX(this.screen.centerX - this.playerWidth); // reset position
                 this.player.setY(this.screen.bottom - this.playerHeight);
-                this.mobileInput.x = this.player.cx; // reset position
-                this.mobileInput.y = this.player.cy;
+                this.input.touch.x = this.player.cx; // reset position
+                this.input.touch.y = this.player.cy;
 
                 this.sounds.dieSound.play();
                 this.lives -= 1; // take life
@@ -351,41 +357,40 @@ class Game {
         }
 
         // paint the next screen
-        this.frameTime = Date.now();
-        this.frame = requestAnimationFrame(() => this.play());
+        this.requestFrame();
     }
 
     handleKeyboardInput(type, code) {
 
         if (type === 'keydown') {
-            this.input.active = true;
+            this.input.active = 'keyboard';
 
             if (code === 'ArrowUp') {
-                this.input.up = true
+                this.input.keyboard.up = true
             }
             if (code === 'ArrowRight') {
-                this.input.right = true
+                this.input.keyboard.right = true
             }
             if (code === 'ArrowDown') {
-                this.input.down = true
+                this.input.keyboard.down = true
             }
             if (code === 'ArrowLeft') {
-                this.input.left = true
+                this.input.keyboard.left = true
             }
         }
 
         if (type === 'keyup') {
             if (code === 'ArrowUp') {
-                this.input.up = false
+                this.input.keyboard.up = false
             }
             if (code === 'ArrowRight') {
-                this.input.right = false
+                this.input.keyboard.right = false
             }
             if (code === 'ArrowDown') {
-                this.input.down = false
+                this.input.keyboard.down = false
             }
             if (code === 'ArrowLeft') {
-                this.input.left = false
+                this.input.keyboard.left = false
             }
 
             if (code === 'Space') {
@@ -399,7 +404,7 @@ class Game {
         // update intended location
 
         // unless just started
-        if (this.gameState.current === 'ready') { return; }
+        if (this.state.current === 'ready') { return; }
 
         // unless muting 
         if (e.target.id === 'mute') { return; }
@@ -407,10 +412,10 @@ class Game {
         this.input.active = false; // set keyboard input inactive
         const { clientX, clientY } = e.changedTouches[0];
 
-        this.mobileInput = {
+        this.input.touch = {
             x: Math.floor(clientX),
             y: Math.floor(clientY)
-        }
+        };
     }
 
     handleOverlayClicks(e) {
@@ -422,61 +427,69 @@ class Game {
         if (target.id === 'button') {
             // game state is ready
             // set game state to play
-            if (this.gameState.current === 'ready') {
-                this.setGameState('play');
+            if (this.state.current === 'ready') {
+                this.setState({ current: 'play' });
 
                 // double mute ios hack
-                this.toggleSounds();
-                this.toggleSounds();
+                this.mute();
+                this.mute();
             }
         }
 
         // clicks mute button
         if (target.id === 'mute') {
-            this.toggleSounds();
+            this.mute();
         }
 
 
         // clicks anywhere
         // game state is over:
         // reset game and set to play
-        if (this.gameState.current === 'over') {
+        if (this.state.current === 'over') {
             this.reset();
         }
 
         // game state is win:
         // reset game and set to play
-        if (this.gameState.current === 'win') {
+        if (this.state.current === 'win') {
             this.reset();
         }
 
         e.stopPropagation();
     }
 
-    toggleSounds() {
-        this.gameSounds = !this.gameSounds; // toggle gameSounds
-        this.overlay.setMute(this.gameSounds); // update mute display
+    mute() {
+        // toggle muted
+        let key = 'toadtraffic-muted';
+        localStorage.setItem(
+            key,
+            localStorage.getItem(key) === 'true' ? 'false' : 'true'
+        );
+        this.state.muted = localStorage.getItem(key) === 'true';
 
-        // if game sounds enabled, unmute all game sounds
-        // else mute all game sounds
-        if (this.gameSounds) {
+        this.overlay.setMute(this.state.muted);
+
+
+        // if muted, else mute all game sounds
+        // unmute all game sounds
+        if (this.state.muted) {
+            // mute all game sounds
+            Object.keys(this.sounds).forEach((key) => {
+                this.sounds[key].muted = true;
+                this.sounds[key].pause();
+            });
+        } else {
             // unmute all game sounds
             // and play background music
             Object.keys(this.sounds).forEach((key) => {
                 this.sounds[key].muted = false;
                 this.sounds.backgroundMusic.play();
             });
-        } else {
-            // mute all game sounds
-            Object.keys(this.sounds).forEach((key) => {
-                this.sounds[key].muted = true;
-                this.sounds[key].pause();
-            });
         }
     }
 
     pause() {
-        if (this.gameState.current != 'play') { return; }
+        if (this.state.current != 'play') { return; }
 
         // toggle gamePaused
         this.gamePaused = !this.gamePaused;
@@ -485,7 +498,7 @@ class Game {
         // stop animating
         // show puase button
         if (this.gamePaused) {
-            cancelAnimationFrame(this.frame);
+            this.cancelFrame();
             this.overlay.showBanner('Paused');
         }
 
@@ -493,48 +506,48 @@ class Game {
         // start animating
         // hide puase button
         if (!this.gamePaused) {
-            this.frameTime = Date.now();
-            this.frame = requestAnimationFrame(() => this.play());
+            this.requestFrame();
             this.overlay.hideBanner();
         }
     }
     
     getDirection() {
-            // get input and update the player's direction
-            if (this.input.active) {
+        // get input and update the player's direction
+        if (this.input.active === 'keyboard') {
 
-                // walk in direction of pressed arrow keys
-                return {
-                    x: (this.input.left ? -1 : 0) + (this.input.right ? 1 : 0),
-                    y: (this.input.up ? -1 : 0) + (this.input.down ? 1 : 0)
-                };
-            } else {
-                // walk to touched point on screen
-                return this.getPathToPoint();
-            }
+
+            // walk in direction of pressed arrow keys
+            return {
+                x: (this.input.keyboard.left ? -1 : 0) + (this.input.keyboard.right ? 1 : 0),
+                y: (this.input.keyboard.up ? -1 : 0) + (this.input.keyboard.down ? 1 : 0)
+            };
+        } else {
+            // walk to touched point on screen
+            return this.getPathToPoint();
+        }
     }
 
     getPathToPoint() {
         // calculate the direction to the point
 
-        let dx = this.mobileInput.x - this.player.cx;
+        let dx = this.input.touch.x - this.player.cx;
         let adx = Math.abs(dx);
         let inrangeX = adx > this.player.width/8;
         // stop if in range
 
         let x = inrangeX ?
-            (this.mobileInput.x < this.player.cx ? -1 : 0) +
-            (this.mobileInput.x > this.player.cx ? 1 : 0) :
+            (this.input.touch.x < this.player.cx ? -1 : 0) +
+            (this.input.touch.x > this.player.cx ? 1 : 0) :
             0;
 
-        let dy = this.mobileInput.y - this.player.cy;
+        let dy = this.input.touch.y - this.player.cy;
         let ady = Math.abs(dy);
         let inrangeY = ady > this.player.height/8;
         // stop if in range
 
         let y = inrangeY ?
-            (this.mobileInput.y < this.player.cy ? -1 : 0) +
-            (this.mobileInput.y > this.player.cy ? 1 : 0) :
+            (this.input.touch.y < this.player.cy ? -1 : 0) +
+            (this.input.touch.y > this.player.cy ? 1 : 0) :
             0;
 
         // smooth out path to touched point
@@ -551,45 +564,81 @@ class Game {
         }
     }
 
-    setGameState(state) {
-        this.gameState = {
-            ...this.gameState,
-            ...{
-                current: state,
-                prev: this.gameState.current
-            }
+    // update game state
+    setState(state) {
+        this.state = {
+            ...this.state,
+            ...{ prev: this.state.current },
+            ...state,
         };
     }
 
-    reset() {
-        document.location.reload();
-    }
-
-    getMovementModifier(w, h, ft) {
-        // smooth out character movement
-        // for different screen sizes and browser frame rates
-        let dt = Date.now() - ft;
-        let s = (w + h) / 2;
-        return (s * dt) / 10000;
-    }
-
     handleResize(e) {
-        this.load();
+        this.resize();
+        // document.location.reload();
+    }
+
+    resize() {
+        // resize canvas
+        this.canvas.width = window.innerWidth; // set  game screen width
+        this.canvas.height = window.innerHeight; // set  game screen height
+
+        // resize screen
+        this.screen = {
+            top: 0,
+            bottom: this.canvas.height,
+            left: 0,
+            right: this.canvas.width,
+            centerX: this.canvas.width / 2,
+            centerY: this.canvas.height / 2,
+            scale: ((this.canvas.width + this.canvas.height) / 2) * 0.003
+        };
+
+        this.bottomArea = {
+            top: this.canvas.height - this.playerHeight,
+            bottom: this.canvas.height
+        }
+
+        this.middleArea = {
+            top: this.topArea.bottom,
+            bottom: this.bottomArea.top
+        }
+
+        this.player.setY(this.bottomArea.top);
     }
 
     handleInject(data) {
-      console.log(data);
       if (data.action === 'injectGlobal') {
         let { scope, key, value } = data.payload;
-        console.log(data.payload, scope, key, value);
         
         this.koji[scope][key] = value;
         this.load();
       }
     }
+
+    // request new frame
+    requestFrame() {
+         let now = Date.now();
+         this.frame = {
+             count: requestAnimationFrame(() => this.play()),
+             rate: now - this.frame.time,
+             time: now,
+             scale: this.screen.scale * this.frame.rate * 0.01
+         };
+     }
+
+    // don't request new frame
+    cancelFrame() {
+        cancelAnimationFrame(this.frame.count);
+    }
 }
 
+// set background color
+document.body.style.backgroundColor = config.style.backgroundColor;
+
+// get the game screen and overlay elements
 const screen = document.getElementById("game");
 const overlay = document.getElementById("overlay");
+
 const frogger = new Game(screen, overlay, config); // here we create a fresh game
 frogger.load(); // and tell it to start

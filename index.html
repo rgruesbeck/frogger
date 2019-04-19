@@ -11,12 +11,15 @@
     <link rel='manifest' href='./manifest.webmanifest' />
   </head>
   <body style="touch-action: none; overflow: hidden; overscroll-behavior-y: contain; position: fixed">
-    <canvas id="game"></canvas>
+    <canvas id="game" style="opacity: 0;"></canvas>
     <div id="overlay">
       <div class="container">
         <div class="center">
           <div id="banner">Toad Traffic</div>
           <div id="button">Start</div>
+          <div id="loading" class="la-ball-clip-rotate">
+            <div></div>
+          </div>
         </div>
         <div id="score">score</div>
         <div id="lives">lives</div>

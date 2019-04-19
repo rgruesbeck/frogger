@@ -5,8 +5,11 @@ class Overlay {
         this.root = node;
 
         this.container = node.querySelector('.container');
+
+        this.loading = node.querySelector('#loading');
         this.banner = node.querySelector('#banner');
         this.button = node.querySelector('#button');
+
         this.score = node.querySelector('#score');
         this.lives = node.querySelector('#lives');
         this.mute = node.querySelector('#mute');
@@ -16,6 +19,14 @@ class Overlay {
             primaryColor: 'purple',
             fontFamily: 'Courier New'
         };
+    }
+
+    setLoading() {
+        this.show('loading');
+    }
+
+    hideLoading() {
+        this.hide('loading');
     }
 
     showBanner(message) {
@@ -62,8 +73,8 @@ class Overlay {
         this.button.style.backgroundColor = this.styles.primaryColor;
     }
 
-    setMute(soundsOn) {
-        this.mute.textContent = soundsOn ? 'volume_up' : 'volume_off';
+    setMute(muted) {
+        this.mute.textContent = muted ? 'volume_off' : 'volume_up';
         this.show('mute');
     }
 
