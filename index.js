@@ -226,6 +226,12 @@ class Game {
             if (!this.overlay.button.active) {
                 this.overlay.showButton(this.koji.general.startText);
             }
+            if (!this.overlay.instructions.active) {
+                this.overlay.setInstructions({
+                    desktop: this.koji.general.instructionsDesktop,
+                    mobile: this.koji.general.instructionsMobile
+                });
+            }
 
             // show mute button
             this.overlay.setMute(this.state.muted);
@@ -269,7 +275,10 @@ class Game {
             if (this.state.prev === 'ready') {
                 this.overlay.showStats(); // show  score and lives
                 if (this.overlay.banner.active) {
-                    this.overlay.hideBanner(); // hide  banner
+                    this.overlay.hideBanner(); // hide banner
+                }
+                if (this.overlay.instructions.active) {
+                    this.overlay.hideInstructions(); // hide instructions
                 }
 
                 // play background music when its available

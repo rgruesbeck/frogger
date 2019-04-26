@@ -4,6 +4,8 @@
     "startText": "Play",
     "winText": "You Win!",
     "gameoverText": "Game Over",
+    "instructionsMobile": "Tap location toad should move to",
+    "instructionsDesktop": "Use arrow keys to move: [ ⇠ ⇢ ] [ ⇡ ⇣ ]",
     "lives": "3",
     "wins": "3",
     "playerSpeed": "8",
@@ -33,6 +35,14 @@
         {
           "key": "gameoverText",
           "name": "Text to show when game over"
+        },
+        {
+          "key": "instructionsMobile",
+          "name": "How to play the game on mobile"
+        },
+        {
+          "key": "instructionsDesktop",
+          "name": "How to play the game on desktop"
         },
         {
           "key": "lives",
