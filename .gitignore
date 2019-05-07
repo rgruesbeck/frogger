@@ -3,6 +3,5 @@ dist
 .cache
 .tmp
 config.json
-manifest.json
 .remy
 Dockerfile

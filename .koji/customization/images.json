@@ -1,0 +1,46 @@
+{
+  "images": {
+    "topImage": "https://i.imgur.com/SYGISw4.png",
+    "middleImage": "https://i.imgur.com/1bWfw13.png",
+    "bottomImage": "https://i.imgur.com/SYGISw4.png",
+    "characterImage": "https://i.imgur.com/9cBQSIA.png",
+    "enemyImage": "https://i.imgur.com/tmF5WW3.png"
+  },
+  "@@editor": [{
+    "key": "images",
+    "name": "Images",
+    "icon": "🖼️",
+    "source": "images.json",
+    "fields": [{
+        "key": "topImage",
+        "name": "Top Image",
+        "description": "URL of Image to use as the top area",
+        "type": "image"
+      },
+      {
+        "key": "middleImage",
+        "name": "Middle Image",
+        "description": "URL of Image to use as the middle area",
+        "type": "image"
+      },
+      {
+        "key": "bottomImage",
+        "name": "Bottom Image",
+        "description": "URL of Image to use as the bottom area",
+        "type": "image"
+      },
+      {
+        "key": "characterImage",
+        "name": "Character",
+        "description": "URL of Image to use as the character",
+        "type": "image"
+      },
+      {
+        "key": "enemyImage",
+        "name": "Enemy",
+        "description": "URL of Image to use as the enemy",
+        "type": "image"
+      }
+    ]
+  }]
+}

@@ -1,5 +1,9 @@
 // Toad Traffic (frogger)
-import config from './config.json';
+import Koji from 'koji-tools';
+Koji.pageLoad();
+
+const config = Koji.config;
+
 import {
     requestAnimationFrame,
     cancelAnimationFrame
@@ -17,8 +21,8 @@ import Player from './gamecharacters/player.js';
 import Enemy from './gamecharacters/enemy.js';
 
 class Game {
-    constructor(canvas, overlay, koji) {
-        this.koji = koji; // customizations from koji
+    constructor(canvas, overlay, config) {
+        this.config = config; // set config
 
         this.canvas = canvas; // game screen
         this.ctx = canvas.getContext("2d"); // game screen context
@@ -38,9 +42,8 @@ class Game {
 
         // game settings
         this.state = {
-            current: 'ready',
-            prev: 'loading',
-            paused: false,
+            current: 'loading',
+            prev: '',
             muted: localStorage.getItem('toadtraffic-muted') === 'true'
         };
 
@@ -69,21 +72,26 @@ class Game {
         this.enemies = {};
 
         // listen for keyboard input
-        document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code), false);
-        document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code), false);
+        document.addEventListener('keydown', ({ code }) => this.handleKeyboardInput('keydown', code));
+        document.addEventListener('keyup', ({ code }) => this.handleKeyboardInput('keyup', code));
         
         // listen for touch input
-        document.addEventListener('touchend', (e) => this.handleTouchInput(e), false);
+        document.addEventListener('touchend', (e) => this.handleTouchInput(e));
 
         // listen for button clicks
-        this.overlay.root.addEventListener('click', (e) => this.handleOverlayClicks(e), false);
+        this.overlay.root.addEventListener('click', (e) => this.handleOverlayClicks(e));
 
         // listen for resize events
-        window.addEventListener("resize", (e) => this.handleResize(e), false);
-        window.addEventListener("orientationchange", (e) => this.handleResize(e), false);
+        window.addEventListener("resize", () => this.reset());
+        window.addEventListener("orientationchange", () => this.reset());
 
-        // listen for post message
-        window.addEventListener("message", ({ data }) => this.handleInject(data), false);
+        // handle koji config changes
+        Koji.on('change', (scope, key, value) => {
+            console.log('updating configs...', scope, key, value);
+            this.config[scope][key] = value;
+            this.cancelFrame(this.frame.count - 1);
+            this.load();
+        });
     }
 
     init() {
@@ -97,17 +105,17 @@ class Game {
 
         this.playerWidth = this.canvas.height / this.gameSize;
         this.playerHeight = this.canvas.height / this.gameSize;
-        this.playerSpeed = this.koji.general.playerSpeed;
+        this.playerSpeed = this.config.settings.playerSpeed;
 
         this.enemyWidth = this.canvas.height / this.gameSize;
         this.enemyHeight = this.canvas.height / this.gameSize;
-        this.enemyMinSpeed = parseInt(this.koji.general.enemyMinSpeed);
-        this.enemyMaxSpeed = parseInt(this.koji.general.enemyMaxSpeed);
-        this.enemySpawnRate = parseInt(this.koji.general.enemySpawnRate);
+        this.enemyMinSpeed = parseInt(this.config.settings.enemyMinSpeed);
+        this.enemyMaxSpeed = parseInt(this.config.settings.enemyMaxSpeed);
+        this.enemySpawnRate = parseInt(this.config.settings.enemySpawnRate);
 
         this.score = 0;
-        this.lives = this.koji.general.lives;
-        this.wins = this.koji.general.wins;
+        this.lives = parseInt(this.config.settings.lives);
+        this.wins = parseInt(this.config.settings.wins);
 
 
         // reset overlays
@@ -123,17 +131,17 @@ class Game {
 
         // make a list of assets to load
         const gameAssets = [
-            loadImage('topImage', this.koji.images.topImage),
-            loadImage('middleImage', this.koji.images.middleImage),
-            loadImage('bottomImage', this.koji.images.bottomImage),
-            loadImage('characterImage', this.koji.images.characterImage),
-            loadImage('enemyImage', this.koji.images.enemyImage),
-            loadSound('backgroundMusic', this.koji.sounds.backgroundMusic),
-            loadSound('winSound', this.koji.sounds.winSound),
-            loadSound('gameoverSound', this.koji.sounds.gameoverSound),
-            loadSound('scoreSound', this.koji.sounds.scoreSound),
-            loadSound('dieSound', this.koji.sounds.dieSound),
-            loadFont('gameFont', this.koji.style.fontFamily)
+            loadImage('topImage', this.config.images.topImage),
+            loadImage('middleImage', this.config.images.middleImage),
+            loadImage('bottomImage', this.config.images.bottomImage),
+            loadImage('characterImage', this.config.images.characterImage),
+            loadImage('enemyImage', this.config.images.enemyImage),
+            loadSound('backgroundMusic', this.config.sounds.backgroundMusic),
+            loadSound('winSound', this.config.sounds.winSound),
+            loadSound('gameoverSound', this.config.sounds.gameoverSound),
+            loadSound('scoreSound', this.config.sounds.scoreSound),
+            loadSound('dieSound', this.config.sounds.dieSound),
+            loadFont('gameFont', this.config.settings.fontFamily)
         ];
 
         loadList(gameAssets)
@@ -155,8 +163,8 @@ class Game {
 
         // set  overlay styles
         this.overlay.setStyles({
-            textColor: this.koji.style.textColor,
-            primaryColor: this.koji.style.primaryColor,
+            textColor: this.config.colors.textColor,
+            primaryColor: this.config.colors.primaryColor,
             fontFamily: this.fonts.gameFont
         })
 
@@ -184,6 +192,8 @@ class Game {
             y: this.player.cy
         };
 
+        // set game state ready
+        this.setState({ current: 'ready' });
         this.play();
     }
 
@@ -221,15 +231,15 @@ class Game {
             // show start button and wait for player
 
             if (!this.overlay.banner.active) {
-                this.overlay.showBanner(this.koji.general.name);
+                this.overlay.showBanner(this.config.settings.name);
             }
             if (!this.overlay.button.active) {
-                this.overlay.showButton(this.koji.general.startText);
+                this.overlay.showButton(this.config.settings.startText);
             }
             if (!this.overlay.instructions.active) {
                 this.overlay.setInstructions({
-                    desktop: this.koji.general.instructionsDesktop,
-                    mobile: this.koji.general.instructionsMobile
+                    desktop: this.config.settings.instructionsDesktop,
+                    mobile: this.config.settings.instructionsMobile
                 });
             }
 
@@ -244,7 +254,7 @@ class Game {
             // got to 'ready' state
 
             if (!this.overlay.banner.active) {
-                this.overlay.showBanner(this.koji.general.winText);
+                this.overlay.showBanner(this.config.settings.winText);
             }
 
             if (this.state.prev === 'play') {
@@ -259,7 +269,7 @@ class Game {
             // show game over, wait for awhile then
             // got to 'ready' state
 
-            this.overlay.showBanner(this.koji.general.gameoverText);
+            this.overlay.showBanner(this.config.settings.gameoverText);
 
             if (this.state.prev === 'play') {
                 this.sounds.gameoverSound.play();
@@ -401,10 +411,6 @@ class Game {
             if (code === 'ArrowLeft') {
                 this.input.keyboard.left = false
             }
-
-            if (code === 'Space') {
-                this.pause();
-            } // spacebar: pause and play game
         }
     }
 
@@ -428,6 +434,7 @@ class Game {
     }
 
     handleOverlayClicks(e) {
+        if (this.state.current === 'loading') { return; }
         let { target } = e;
 
         this.overlay.hideButton(); // hide button
@@ -496,29 +503,6 @@ class Game {
             });
         }
     }
-
-    pause() {
-        if (this.state.current != 'play') { return; }
-
-        // toggle gamePaused
-        this.gamePaused = !this.gamePaused;
-
-        // paused game
-        // stop animating
-        // show puase button
-        if (this.gamePaused) {
-            this.cancelFrame();
-            this.overlay.showBanner('Paused');
-        }
-
-        // unpaused game
-        // start animating
-        // hide puase button
-        if (!this.gamePaused) {
-            this.requestFrame();
-            this.overlay.hideBanner();
-        }
-    }
     
     getDirection() {
         // get input and update the player's direction
@@ -582,47 +566,8 @@ class Game {
         };
     }
 
-    handleResize(e) {
-        this.resize();
-        // document.location.reload();
-    }
-
-    resize() {
-        // resize canvas
-        this.canvas.width = window.innerWidth; // set  game screen width
-        this.canvas.height = window.innerHeight; // set  game screen height
-
-        // resize screen
-        this.screen = {
-            top: 0,
-            bottom: this.canvas.height,
-            left: 0,
-            right: this.canvas.width,
-            centerX: this.canvas.width / 2,
-            centerY: this.canvas.height / 2,
-            scale: ((this.canvas.width + this.canvas.height) / 2) * 0.003
-        };
-
-        this.bottomArea = {
-            top: this.canvas.height - this.playerHeight,
-            bottom: this.canvas.height
-        }
-
-        this.middleArea = {
-            top: this.topArea.bottom,
-            bottom: this.bottomArea.top
-        }
-
-        this.player.setY(this.bottomArea.top);
-    }
-
-    handleInject(data) {
-      if (data.action === 'injectGlobal') {
-        let { scope, key, value } = data.payload;
-        
-        this.koji[scope][key] = value;
-        this.load();
-      }
+    reset() {
+        document.location.reload();
     }
 
     // request new frame
@@ -643,7 +588,7 @@ class Game {
 }
 
 // set background color
-document.body.style.backgroundColor = config.style.backgroundColor;
+document.body.style.backgroundColor = config.colors.backgroundColor;
 
 // get the game screen and overlay elements
 const screen = document.getElementById("game");

@@ -41,7 +41,8 @@ class Overlay {
 
     showButton(message) {
         this.button.style.fontFamily = this.styles.fontFamily;
-        this.button.textContent = message;
+        // fix for safari
+        this.button.innerHTML = `<span id="buttonspan">${message}</span>`;
         this.show('button');
     }
 
