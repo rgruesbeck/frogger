@@ -4,7 +4,7 @@
 *A customizable highway crossing game*
 
 ## Things to customize
-- 🎮 Change the text and game settings and text
+- 🎮 Change the text and game settings
     * [Open configuration](#~/.koji/customization/settings.json!visual)
 - 🖼️ Replace the frog, enemies, background and more
     * [Open configuration](#~/.koji/customization/images.json!visual)
