@@ -1,9 +1,9 @@
 {
   "metadata": {
-    "title": "HTML5 Canvas Game Scaffold",
-    "description": "A scaffold for creating games with HTML5 Canvas on Koji. Easily customizable at gokoji.com.",
-    "image": "https://i.imgur.com/1VTl2r7.png",
-    "icon": "https://via.placeholder.com",
+    "title": "Toad Traffic",
+    "description": "A customizable highway crossing game. Easily customizable at gokoji.com.",
+    "image": "https://images.koji-cdn.com/template-assets/3847fd22-157e-401b-8654-e129e891f9b4_1556336761369.png",
+    "icon": "https://images.koji-cdn.com/template-assets/3847fd22-157e-401b-8654-e129e891f9b4_1556336761369.png",
     "icon192": "https://via.placeholder.com/192",
     "icon512": "https://via.placeholder.com/512",
     "gaCode": ""

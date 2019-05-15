@@ -4,12 +4,14 @@
 *A customizable highway crossing game*
 
 ## Things to customize
-- 🌞 Replace the frog, enemies, background and more
+- 🎮 Change the text and game settings and text
+    * [Open configuration](#~/.koji/customization/settings.json!visual)
+- 🖼️ Replace the frog, enemies, background and more
     * [Open configuration](#~/.koji/customization/images.json!visual)
 - 🔈 Change the sounds for winning, losing, and more
     * [Open configuration](#~/.koji/customization/sounds.json!visual)
-- 💅 Change the background, fonts, and visual style
-    * [Open configuration](#~/.koji/customization/style.json!visual)
+- 💅 Change the colors and visual style
+    * [Open configuration](#~/.koji/customization/colors.json!visual)
 - ⚙️ Add your Google Analytics ID and Open Graph information for sharing
     * [Open configuration](#~/.koji/customization/metadata.json!visual)
 
