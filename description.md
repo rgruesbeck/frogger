@@ -10,8 +10,8 @@ Frogger was the game that started the road crossing genre, and this template mak
 - ⚙️ Add Google Analytics ID and Open Graph information for sharing.
 
 ## Some Ideas
-- An idle miner game.
-- A classic puzzle game.
+- A game with cats!
+- A a game with dinosaurs!
 
 ## People are here to help you get it done
 If you need any help, you can ask the community by [making a post](https://gokoji.com/posts), or [joining the discord](https://discordapp.com/invite/eQuMJF6).
