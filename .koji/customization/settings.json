@@ -12,7 +12,7 @@
     "enemyMinSpeed": "4",
     "enemyMaxSpeed": "6",
     "enemySpawnRate": "60",
-    "fontFamily": "Bungee Shade"
+    "fontFamily": "Bungee Inline"
   },
   "@@editor": [{
     "key": "settings",

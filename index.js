@@ -107,7 +107,7 @@ class Game {
         this.playerHeight = this.canvas.height / this.gameSize;
         this.playerSpeed = this.config.settings.playerSpeed;
 
-        this.enemyWidth = this.canvas.height / this.gameSize;
+        this.enemyWidth = this.canvas.width / this.gameSize * 3;
         this.enemyHeight = this.canvas.height / this.gameSize;
         this.enemyMinSpeed = parseInt(this.config.settings.enemyMinSpeed);
         this.enemyMaxSpeed = parseInt(this.config.settings.enemyMaxSpeed);
