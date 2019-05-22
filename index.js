@@ -101,14 +101,12 @@ class Game {
         }
 
         // initialize game settings
-        this.gameSize = 20 / this.screen.scale;
-
-        this.playerWidth = 40 * this.screen.scale;
-        this.playerHeight = 40 * this.screen.scale;
+        this.playerWidth = Math.min(40 * this.screen.scale, 120);
+        this.playerHeight = Math.min(40 * this.screen.scale, 120);
         this.playerSpeed = this.config.settings.playerSpeed;
 
-        this.enemyWidth = 60 * this.screen.scale;
-        this.enemyHeight = 40 * this.screen.scale;
+        this.enemyWidth = Math.min(60 * this.screen.scale, 180);
+        this.enemyHeight = Math.min(40 * this.screen.scale, 120);
         this.enemyMinSpeed = parseInt(this.config.settings.enemyMinSpeed);
         this.enemyMaxSpeed = parseInt(this.config.settings.enemyMaxSpeed);
         this.enemySpawnRate = parseInt(this.config.settings.enemySpawnRate);
