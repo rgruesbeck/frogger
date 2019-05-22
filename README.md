@@ -1,24 +1,42 @@
 # Toad Traffic
-![Game Artwork](https://i.imgur.com/jcBe9Ef.png)
 
-*A customizable highway crossing game*
+The road crossing game.
 
-## Things to customize
+# VCC's
+
 - 🎮 Change the text and game settings
     * [Open configuration](#~/.koji/customization/settings.json!visual)
-- 🖼️ Replace the frog, enemies, background and more
+- 🖼️ Replace the player, enemies, and backgrounds.
     * [Open configuration](#~/.koji/customization/images.json!visual)
-- 🔈 Change the sounds for winning, losing, and more
+- 🔈 Change the sounds and background music.
     * [Open configuration](#~/.koji/customization/sounds.json!visual)
 - 💅 Change the colors and visual style
     * [Open configuration](#~/.koji/customization/colors.json!visual)
 - ⚙️ Add your Google Analytics ID and Open Graph information for sharing
     * [Open configuration](#~/.koji/customization/metadata.json!visual)
 
-When you're ready, [deploy your project](#~/.koji/deploy.json!visual) and share it with the world! If you decide you want to change something later, you can always redeploy to update!
+## Structure
+### ~/
+This is the main directory
+- [index.html](#~/index.html) is the main html file where the game canvas, and overlay elements are declared.
+- [index.js](#~/index.js) is the main javascript file where the load, create, and play loop methods are including code for initializing and loading the game.
+- [style.css](#~/style.css) this file contains css styles for the game canvas, and overlay elements.
 
-## Code structure
-You can find the code for the main game [here](#~/index.js).
+### ~/gamecharacters
+This directory contains the main game code.
+- [gamecharacters/player.js](#~/gamecharacters/player.js) code for the main game character.
+- [gamecharacters/enemy.js](#~/gamecharacters/enemy.js) code for the computer opponent characters.
 
-## Support and suggestions
-Please feel free to [contact me](https://gokoji.com/profile/rong) if you have any suggestions!
+### ~/helpers
+This directory contains the main game code.
+- [helpers/overlay.js](#~/helpers/overlay.js)controls the html overlay for displaying game text.
+- [helpers/animationframe.js](#~/helpers/animationframe.js) a shim for requestAnimationFrame, the browsers method for asking for a new frame. Browsers request around 60 frames per second depending of resources.
+- [helpers/loaders.js](#~/helpers/loaders.js) a collections of functions to help load image, sound, and font assets.
+
+## Support
+### Community
+If you need any help, you can ask the community by [making a post](https://gokoji.com/posts), or [joining the discord](https://discordapp.com/invite/eQuMJF6).
+
+### Helpful Resources
+- [Mozilla Game Development Docs](https://developer.mozilla.org/en-US/docs/Games).
+- [HTML5 Game Devs Forum](http://www.html5gamedevs.com/).
