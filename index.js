@@ -101,17 +101,19 @@ class Game {
         }
 
         // initialize game settings
-        this.gameSize = 9;
+        this.gameSize = 20 / this.screen.scale;
 
-        this.playerWidth = this.canvas.height / this.gameSize;
-        this.playerHeight = this.canvas.height / this.gameSize;
+        this.playerWidth = 40 * this.screen.scale;
+        this.playerHeight = 40 * this.screen.scale;
         this.playerSpeed = this.config.settings.playerSpeed;
 
-        this.enemyWidth = this.canvas.width / this.gameSize * 3;
-        this.enemyHeight = this.canvas.height / this.gameSize;
+        this.enemyWidth = 60 * this.screen.scale;
+        this.enemyHeight = 40 * this.screen.scale;
         this.enemyMinSpeed = parseInt(this.config.settings.enemyMinSpeed);
         this.enemyMaxSpeed = parseInt(this.config.settings.enemyMaxSpeed);
         this.enemySpawnRate = parseInt(this.config.settings.enemySpawnRate);
+
+        this.safeZoneHeight = this.playerHeight * 1.25;
 
         this.score = 0;
         this.lives = parseInt(this.config.settings.lives);
@@ -170,21 +172,26 @@ class Game {
 
         this.topArea = {
             top: 0,
-            bottom: this.canvas.height / this.gameSize
+            bottom: this.safeZoneHeight
         }
 
         this.middleArea = {
-            top: this.canvas.height / this.gameSize,
-            bottom: this.canvas.height - (this.canvas.height / this.gameSize)
+            top: this.safeZoneHeight,
+            bottom: this.canvas.height - (this.safeZoneHeight)
         }
 
         this.bottomArea = {
-            top: this.canvas.height - (this.canvas.height / this.gameSize),
+            top: this.canvas.height - (this.safeZoneHeight),
             bottom: this.canvas.height
         }
 
         // create player
-        this.player = new Player(this.ctx, this.images.characterImage, this.screen.centerX - this.playerWidth / 2, this.screen.bottom - this.playerHeight, this.playerWidth, this.playerHeight, this.playerSpeed);
+        this.player = new Player(this.ctx,
+            this.images.characterImage,
+            this.screen.centerX - this.playerWidth / 2,
+            this.screen.bottom - (this.safeZoneHeight + this.playerHeight) / 2,
+            this.playerWidth, this.playerHeight,
+            this.playerSpeed);
 
         // set mobileInput to home
         this.input.touch = {
