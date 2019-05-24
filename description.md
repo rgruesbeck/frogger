@@ -1,4 +1,4 @@
-# Toad Traffic
+# Frogger
 
 Frogger was the game that started the road crossing genre, and this template makes it easy to create one (or many) of your own without having to learn a complicated framework. This template gives you a complete scaffold to start building right away.
 

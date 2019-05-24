@@ -1,4 +1,4 @@
-# Toad Traffic
+# Frogger
 
 The road crossing game.
 

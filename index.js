@@ -1,4 +1,4 @@
-// Toad Traffic (frogger)
+// Frogger
 import Koji from 'koji-tools';
 Koji.pageLoad();
 
@@ -44,7 +44,7 @@ class Game {
         this.state = {
             current: 'loading',
             prev: '',
-            muted: localStorage.getItem('toadtraffic-muted') === 'true'
+            muted: localStorage.getItem('frogger-muted') === 'true'
         };
 
         this.input = {

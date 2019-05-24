@@ -1,10 +1,10 @@
 {
   "settings": {
-    "name": "Toad Traffic",
+    "name": "Frogger",
     "startText": "Play",
     "winText": "You Win!",
     "gameoverText": "Game Over",
-    "instructionsMobile": "Tap location toad should move to",
+    "instructionsMobile": "Tap location frog should move to",
     "instructionsDesktop": "Use arrow keys to move: [ ⇠ ⇢ ] [ ⇡ ⇣ ]",
     "lives": "3",
     "wins": "3",
