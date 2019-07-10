@@ -9,12 +9,18 @@ import {
     cancelAnimationFrame
 } from './helpers/animationframe.js';
 
+import { hashCode } from './helpers/utils.js';
+
 import {
     loadList,
     loadImage,
     loadSound,
     loadFont
-} from './helpers/loaders.js';
+} from 'game-asset-loader';
+
+import audioContext from 'audio-context';
+import audioPlayback from 'audio-play';
+import unlockAudioContext from 'unlock-audio-context';
 
 import Overlay from './helpers/overlay.js';
 import Player from './gamecharacters/player.js';
@@ -24,12 +30,16 @@ class Game {
     constructor(canvas, overlay, config) {
         this.config = config; // set config
 
+        this.prefix = hashCode(this.config.settings.name); // set prefix for local-storage keys
+
         this.canvas = canvas; // game screen
         this.ctx = canvas.getContext("2d"); // game screen context
         this.canvas.width = window.innerWidth; // set  game screen width
         this.canvas.height = window.innerHeight; // set  game screen height
-            
 
+        this.audioCtx = audioContext(); // create new audio context
+        this.playlist = [];
+            
         this.overlay = new Overlay(overlay);
 
         // frame count and rate
@@ -92,6 +102,8 @@ class Game {
             this.cancelFrame(this.frame.count - 1);
             this.load();
         });
+
+        unlockAudioContext(this.audioCtx);
     }
 
     init() {
@@ -144,7 +156,10 @@ class Game {
             loadFont('gameFont', this.config.settings.fontFamily)
         ];
 
-        loadList(gameAssets)
+        loadList(gameAssets, (progress) => {
+                console.log(progress)
+
+            })
             .then((assets) => {
 
                 this.images = assets.image; // attach the loaded images
@@ -263,7 +278,7 @@ class Game {
             }
 
             if (this.state.prev === 'play') {
-                this.sounds.winSound.play();
+                this.playback('winSound', this.sounds.winSound);
                 this.setState({ current: 'win' });
             }
         }
@@ -277,7 +292,7 @@ class Game {
             this.overlay.showBanner(this.config.settings.gameoverText);
 
             if (this.state.prev === 'play') {
-                this.sounds.gameoverSound.play();
+                this.playback('gameoverSound', this.sounds.gameoverSound);
                 this.setState({ current: 'over' });
             }
         }
@@ -297,9 +312,14 @@ class Game {
                 }
 
                 // play background music when its available
-                this.sounds.backgroundMusic.loop = true;
-                if (!this.state.muted) {
-                    this.sounds.backgroundMusic.play();
+                if (!this.state.muted && !this.state.backgroundMusic) {
+                    let sound = this.sounds.backgroundMusic;
+                    this.state.backgroundMusic = audioPlayback(sound, {
+                        start: 0,
+                        end: sound.duration,
+                        loop: true,
+                        context: this.audioCtx
+                    });
                 }
             }
 
@@ -347,7 +367,7 @@ class Game {
                 this.input.touch.x = this.player.cx; // reset position
                 this.input.touch.y = this.player.cy;
 
-                this.sounds.scoreSound.play();
+                this.playback('scoreSound', this.sounds.scoreSound);
                 this.wins -= 1;
                 this.score += 100;
             }
@@ -372,7 +392,7 @@ class Game {
                 this.input.touch.x = this.player.cx; // reset position
                 this.input.touch.y = this.player.cy;
 
-                this.sounds.dieSound.play();
+                this.playback('dieSound', this.sounds.dieSound);
                 this.lives -= 1; // take life
             }
 
@@ -480,8 +500,7 @@ class Game {
     }
 
     mute() {
-        // toggle muted
-        let key = 'toadtraffic-muted';
+        let key = this.prefix.concat('muted');
         localStorage.setItem(
             key,
             localStorage.getItem(key) === 'true' ? 'false' : 'true'
@@ -490,22 +509,14 @@ class Game {
 
         this.overlay.setMute(this.state.muted);
 
-
-        // if muted, else mute all game sounds
-        // unmute all game sounds
         if (this.state.muted) {
             // mute all game sounds
-            Object.keys(this.sounds).forEach((key) => {
-                this.sounds[key].muted = true;
-                this.sounds[key].pause();
-            });
+            this.audioCtx.suspend();
         } else {
             // unmute all game sounds
-            // and play background music
-            Object.keys(this.sounds).forEach((key) => {
-                this.sounds[key].muted = false;
-                this.sounds.backgroundMusic.play();
-            });
+            if (!this.state.paused) {
+                this.audioCtx.resume();
+            }
         }
     }
     
@@ -560,6 +571,27 @@ class Game {
                 y: y 
             }
         }
+    }
+
+    playback(key, audioBuffer, options = {}) {
+        // add to playlist
+        let id = Math.random().toString(16).slice(2);
+        this.playlist.push({
+            id: id,
+            key: key,
+            playback: audioPlayback(audioBuffer, {
+                ...{
+                    start: 0,
+                    end: audioBuffer.duration,
+                    context: this.audioCtx
+                },
+                ...options
+            }, () => {
+                // remove played sound from playlist
+                this.playlist = this.playlist
+                    .filter(s => s.id != id);
+            })
+        });
     }
 
     // update game state
