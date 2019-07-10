@@ -38,6 +38,7 @@ class Game {
         this.canvas.height = window.innerHeight; // set  game screen height
 
         this.audioCtx = audioContext(); // create new audio context
+        unlockAudioContext(this.audioCtx);
         this.playlist = [];
             
         this.overlay = new Overlay(overlay);
@@ -103,7 +104,6 @@ class Game {
             this.load();
         });
 
-        unlockAudioContext(this.audioCtx);
     }
 
     init() {
@@ -157,7 +157,7 @@ class Game {
         ];
 
         loadList(gameAssets, (progress) => {
-                console.log(progress)
+                document.getElementById('loading-progress').textContent = `${progress.percent}%`;
 
             })
             .then((assets) => {
