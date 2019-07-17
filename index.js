@@ -22,6 +22,8 @@ import audioContext from 'audio-context';
 import audioPlayback from 'audio-play';
 import unlockAudioContext from 'unlock-audio-context';
 
+import preventParent from 'prevent-parent';
+
 import Overlay from './helpers/overlay.js';
 import Player from './gamecharacters/player.js';
 import Enemy from './gamecharacters/enemy.js';
@@ -42,6 +44,9 @@ class Game {
         this.playlist = [];
             
         this.overlay = new Overlay(overlay);
+
+	// prevent parent wondow form scrolling
+	preventParent();
 
         // frame count and rate
         // just a place to keep track of frame rate (not set it)
