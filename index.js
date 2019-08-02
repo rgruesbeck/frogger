@@ -291,13 +291,16 @@ class Game {
         // game over
         if (this.state.current === 'over') {
             // player wins!
-            // show game over, wait for awhile then
-            // got to 'ready' state
 
             this.overlay.showBanner(this.config.settings.gameoverText);
 
+            console.log('over')
+
             if (this.state.prev === 'play') {
                 this.playback('gameoverSound', this.sounds.gameoverSound);
+
+                this.overlay.showBanner(this.config.settings.gameoverText);
+                this.overlay.showButton(this.config.settings.reStartText);
                 this.setState({ current: 'over' });
             }
         }
@@ -467,7 +470,6 @@ class Game {
         if (this.state.current === 'loading') { return; }
         let { target } = e;
 
-        this.overlay.hideButton(); // hide button
 
         // clicks on button
         if (target.id === 'button') {
@@ -480,6 +482,14 @@ class Game {
                 this.mute();
                 this.mute();
             }
+
+            // restart on 
+            if (this.state.current.match(/over|win/)) {
+                this.reset();
+            }
+
+            this.overlay.hideButton(); // hide button
+
         }
 
         // clicks mute button
@@ -487,7 +497,7 @@ class Game {
             this.mute();
         }
 
-
+        /*
         // clicks anywhere
         // game state is over:
         // reset game and set to play
@@ -500,8 +510,7 @@ class Game {
         if (this.state.current === 'win') {
             this.reset();
         }
-
-        e.stopPropagation();
+        */
     }
 
     mute() {

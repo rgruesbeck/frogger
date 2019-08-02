@@ -2,6 +2,7 @@
   "settings": {
     "name": "Frogger",
     "startText": "Play",
+    "reStartText": "Restart",
     "winText": "You Win!",
     "gameoverText": "Game Over",
     "instructionsMobile": "Tap location frog should move to",
@@ -26,6 +27,10 @@
       {
         "key": "startText",
         "name": "Start Button Text"
+      },
+      {
+        "key": "reStartText",
+        "name": "ReStart Button Text"
       },
       {
         "key": "winText",
