@@ -1,15 +1,12 @@
 // Frogger
 import Koji from 'koji-tools';
-Koji.pageLoad();
-
-const config = Koji.config;
 
 import {
     requestAnimationFrame,
     cancelAnimationFrame
 } from './helpers/animationframe.js';
 
-import { hashCode } from './helpers/utils.js';
+import { hashCode } from './utils/utils.js';
 
 import {
     loadList,
@@ -24,13 +21,14 @@ import unlockAudioContext from 'unlock-audio-context';
 
 import preventParent from 'prevent-parent';
 
-import Overlay from './helpers/overlay.js';
-import Player from './gamecharacters/player.js';
-import Enemy from './gamecharacters/enemy.js';
+import Player from './characters/player.js';
+import Enemy from './characters/enemy.js';
 
 class Game {
-    constructor(canvas, overlay, config) {
+    constructor(canvas, overlay, topbar, config) {
         this.config = config; // set config
+        this.overlay = overlay; // set overlay
+        this.topbar = topbar; // set topbar: todo
 
         this.prefix = hashCode(this.config.settings.name); // set prefix for local-storage keys
 
@@ -39,14 +37,12 @@ class Game {
         this.canvas.width = window.innerWidth; // set  game screen width
         this.canvas.height = window.innerHeight; // set  game screen height
 
+        this.playlist = [];
         this.audioCtx = audioContext(); // create new audio context
         unlockAudioContext(this.audioCtx);
-        this.playlist = [];
-            
-        this.overlay = new Overlay(overlay);
 
-	// prevent parent wondow form scrolling
-	preventParent();
+        // prevent parent window form scrolling
+        preventParent();
 
         // frame count and rate
         // just a place to keep track of frame rate (not set it)
@@ -60,7 +56,7 @@ class Game {
         this.state = {
             current: 'loading',
             prev: '',
-            muted: localStorage.getItem('frogger-muted') === 'true'
+            muted: localStorage.getItem(this.prefix.concat('muted')) === 'true'
         };
 
         this.input = {
@@ -181,12 +177,8 @@ class Game {
     create() {
         // here we will create  game characters
 
-        // set  overlay styles
-        this.overlay.setStyles({
-            textColor: this.config.colors.textColor,
-            primaryColor: this.config.colors.primaryColor,
-            fontFamily: this.fonts.gameFont
-        })
+        // set overlay styles
+        this.overlay.setStyles({...this.config.colors, ...this.config.settings});
 
         this.topArea = {
             top: 0,
@@ -228,8 +220,6 @@ class Game {
         // this way we will create an animation just like the pages of a flip book
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); // clears the screen of the last picture
 
-
-
         // draw top, middle, and bottom areas
         this.ctx.drawImage(this.images.topImage, 0, 0, this.canvas.width, this.topArea.bottom);
         this.ctx.drawImage(this.images.middleImage, 0, this.middleArea.top, this.canvas.width, this.middleArea.bottom - this.middleArea.top);
@@ -247,8 +237,6 @@ class Game {
         if (this.lives < 1) {
             this.setState({ current: 'over' });
         }
-
-
 
         // ready to play
         if (this.state.current === 'ready') {
@@ -294,14 +282,9 @@ class Game {
 
             this.overlay.showBanner(this.config.settings.gameoverText);
 
-            console.log('over')
-
             if (this.state.prev === 'play') {
-                this.playback('gameoverSound', this.sounds.gameoverSound);
-
-                this.overlay.showBanner(this.config.settings.gameoverText);
-                this.overlay.showButton(this.config.settings.reStartText);
-                this.setState({ current: 'over' });
+                window.setScore(this.score);
+                window.setAppView('setScore');
             }
         }
 
@@ -312,23 +295,30 @@ class Game {
 
             if (this.state.prev === 'ready') {
                 this.overlay.showStats(); // show  score and lives
+
+                if (this.overlay.button.active) {
+                    this.overlay.hideButton(); // hide button
+                }
+
                 if (this.overlay.banner.active) {
                     this.overlay.hideBanner(); // hide banner
                 }
+
                 if (this.overlay.instructions.active) {
                     this.overlay.hideInstructions(); // hide instructions
                 }
 
-                // play background music when its available
+                // background music
                 if (!this.state.muted && !this.state.backgroundMusic) {
-                    let sound = this.sounds.backgroundMusic;
-                    this.state.backgroundMusic = audioPlayback(sound, {
+                    this.state.backgroundMusic = true;
+                    this.playback('backgroundMusic', this.sounds.backgroundMusic, {
                         start: 0,
-                        end: sound.duration,
+                        end: this.sounds.backgroundMusic.duration,
                         loop: true,
                         context: this.audioCtx
                     });
                 }
+
             }
 
             // draw enemies
@@ -404,12 +394,15 @@ class Game {
                 this.lives -= 1; // take life
             }
 
-
-            // player gets powerup
+            // player gets power-up
         }
 
-        // paint the next screen
-        this.requestFrame();
+        // draw the next screen
+        if (this.state.current === 'stop') {
+            this.cancelFrame();
+        } else {
+            this.requestFrame(() => this.play());
+        }
     }
 
     handleKeyboardInput(type, code) {
@@ -477,10 +470,6 @@ class Game {
             // set game state to play
             if (this.state.current === 'ready') {
                 this.setState({ current: 'play' });
-
-                // double mute ios hack
-                this.mute();
-                this.mute();
             }
 
             // restart on 
@@ -488,8 +477,9 @@ class Game {
                 this.reset();
             }
 
-            this.overlay.hideButton(); // hide button
+            if (this.over) {
 
+            }
         }
 
         // clicks mute button
@@ -497,20 +487,6 @@ class Game {
             this.mute();
         }
 
-        /*
-        // clicks anywhere
-        // game state is over:
-        // reset game and set to play
-        if (this.state.current === 'over') {
-            this.reset();
-        }
-
-        // game state is win:
-        // reset game and set to play
-        if (this.state.current === 'win') {
-            this.reset();
-        }
-        */
     }
 
     mute() {
@@ -608,6 +584,23 @@ class Game {
         });
     }
 
+    // method:stopPlayBack
+    stopPlayback(key) {
+        this.playlist = this.playlist
+        .filter(s => {
+            let targetBuffer = s.key === key;
+            if (targetBuffer) {
+                s.playback.pause();
+            }
+            return targetBuffer;
+        })
+    }
+
+    stopPlaylist() {
+        this.playlist
+        .forEach(s => this.stopPlayback(s.key))
+    }
+
     // update game state
     setState(state) {
         this.state = {
@@ -618,7 +611,7 @@ class Game {
     }
 
     reset() {
-        document.location.reload();
+        // document.location.reload();
     }
 
     // request new frame
@@ -636,14 +629,38 @@ class Game {
     cancelFrame() {
         cancelAnimationFrame(this.frame.count);
     }
+
+    destroy() {
+      // stop game loop and music
+      this.setState({ current: 'stop' });
+      this.stopPlaylist();
+
+      // cleanup event listeners
+      document.removeEventListener('keydown', this.handleKeyboardInput);
+      document.removeEventListener('keyup', this.handleKeyboardInput);
+      this.overlay.root.removeEventListener('click', this.handleOverlayClicks);
+      document.removeEventListener('touchend', this.handleTouchInput);
+      window.removeEventListener("resize", this.reset);
+      window.removeEventListener("orientationchange", this.reset);
+
+      // cleanup nodes
+      delete this.overlay;
+      delete this.canvas;
+    }
 }
 
-// set background color
-document.body.style.backgroundColor = config.colors.backgroundColor;
+export default Game;
 
-// get the game screen and overlay elements
-const screen = document.getElementById("game");
-const overlay = document.getElementById("overlay");
+/*
+    // background music
+    if (!this.state.muted && !this.state.backgroundMusic) {
+      this.state.backgroundMusic = true;
+      this.playback('backgroundMusic', this.sounds.backgroundMusic, {
+        start: 0,
+        end: this.sounds.backgroundMusic.duration,
+        loop: true,
+        context: this.audioCtx
+      });
+    }
 
-const frogger = new Game(screen, overlay, config); // here we create a fresh game
-frogger.load(); // and tell it to start
+*/

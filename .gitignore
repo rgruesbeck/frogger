@@ -5,3 +5,8 @@ dist
 config.json
 .remy
 Dockerfile
+
+# build folders
+frontend/dist
+backend/dist
+

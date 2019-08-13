@@ -1,33 +1,56 @@
 {
   "colors": {
     "textColor": "#f8fd19",
+    "lightTextColor": "#ffffff",
+    "darkTextColor": "#363537",
     "primaryColor": "#363537",
-    "backgroundColor": "#6EEB83"
+    "secondaryColor": "#c93e29",
+    "tertiaryColor": "#c93e29",
+    "backgroundColor": "#169102"
   },
-  "@@editor": [
-    {
-      "key": "colors",
-      "name": "Colors",
-      "icon": "💅",
-      "source": "colors.json",
-      "fields": [
-        {
-          "key": "textColor",
-          "name": "Text color",
-          "description": "Default color for text",
-          "type": "color"
-        },
-        {
-          "key": "primaryColor",
-          "name": "Primary Color",
-          "type": "color"
-        },
-        {
-          "key": "backgroundColor",
-          "name": "Background color",
-          "type": "color"
-        }
-      ]
-    }
-  ]
+  "@@editor": [{
+    "key": "colors",
+    "name": "Colors",
+    "icon": "💅",
+    "source": "colors.json",
+    "fields": [{
+        "key": "textColor",
+        "name": "Text color",
+        "description": "Default color for text",
+        "type": "color"
+      },
+      {
+        "key": "lightTextColor",
+        "name": "Light Text color",
+        "description": "Default color for light text",
+        "type": "color"
+      },
+      {
+        "key": "darkTextColor",
+        "name": "Dark Text color",
+        "description": "Default color for dark text",
+        "type": "color"
+      },
+      {
+        "key": "primaryColor",
+        "name": "Primary Color",
+        "type": "color"
+      },
+      {
+        "key": "secondaryColor",
+        "name": "Secondary Color",
+        "type": "color"
+      },
+      {
+        "key": "tertiaryColor",
+        "name": "Tertiary Color",
+        "type": "color"
+      },
+      {
+        "key": "backgroundColor",
+        "name": "Background color",
+        "type": "color"
+      }
+    ]
+  }]
 }

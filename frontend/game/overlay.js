@@ -15,11 +15,7 @@ class Overlay {
         this.lives = node.querySelector('#lives');
         this.mute = node.querySelector('#mute');
 
-        this.styles = {
-            textColor: 'white',
-            primaryColor: 'purple',
-            fontFamily: 'Courier New'
-        };
+        this.styles = {};
     }
 
     setLoading() {
@@ -80,18 +76,6 @@ class Overlay {
         this.lives.textContent = `Lives: ${lives}`;
     }
 
-    setStyles(styles) {
-        this.styles = { ...this.styles, ...styles };
-        this.applyStyles();
-    }
-
-    applyStyles() {
-        this.container.style.color = this.styles.textColor;
-        this.container.style.fontFamily = this.styles.fontFamily;
-
-        this.button.style.backgroundColor = this.styles.primaryColor;
-    }
-
     setMute(muted) {
         this.mute.textContent = muted ? 'volume_off' : 'volume_up';
         this.show('mute');
@@ -107,6 +91,18 @@ class Overlay {
         this[node].active = false;
         this[node].style.opacity = 0;
         this[node].style.visibility = 'hidden';
+    }
+
+    setStyles(styles) {
+        this.styles = { ...this.styles, ...styles };
+        this.applyStyles();
+    }
+
+    applyStyles() {
+      this.container.style.color = this.styles.textColor;
+      this.container.style.fontFamily = this.styles.fontFamily;
+      this.button.style.color = this.styles.textColor;
+      this.button.style.backgroundColor = this.styles.primaryColor;
     }
 }
 
