@@ -134,6 +134,10 @@ class Game {
         // reset overlays
         this.overlay.banner.active = false;
         this.overlay.button.active = false;
+
+        // set loading styles
+        document.body.style.color = this.config.colors.textColor;
+        document.body.style.backgroundColor = this.config.colors.backgroundColor;
     }
 
     load() {
@@ -650,17 +654,3 @@ class Game {
 }
 
 export default Game;
-
-/*
-    // background music
-    if (!this.state.muted && !this.state.backgroundMusic) {
-      this.state.backgroundMusic = true;
-      this.playback('backgroundMusic', this.sounds.backgroundMusic, {
-        start: 0,
-        end: this.sounds.backgroundMusic.duration,
-        loop: true,
-        context: this.audioCtx
-      });
-    }
-
-*/
